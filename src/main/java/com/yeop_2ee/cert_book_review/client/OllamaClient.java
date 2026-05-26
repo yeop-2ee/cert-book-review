@@ -12,7 +12,7 @@ import java.util.Map;
 public class OllamaClient {
 
     private static final String OLLAMA_URL = "http://localhost:11434/api/generate";
-    private static final String MODEL = "gemma3:12b";
+    private static final String MODEL = "gemma3:4b";
 
     private final RestTemplate restTemplate;
 

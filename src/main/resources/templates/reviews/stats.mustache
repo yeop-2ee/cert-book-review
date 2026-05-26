@@ -243,23 +243,28 @@
     var aiCard = document.getElementById('aiTipsCard');
     if (aiCard) {
         var certName = aiCard.getAttribute('data-cert');
-        var loading = document.getElementById('aiTipsLoading');
-        var result  = document.getElementById('aiTipsResult');
-        var text    = document.getElementById('aiTipsText');
-        var status  = document.getElementById('aiTipsStatus');
+        var tipsLoading = document.getElementById('aiTipsLoading');
+        var tipsResult  = document.getElementById('aiTipsResult');
+        var tipsText    = document.getElementById('aiTipsText');
+        var tipsBadge   = document.getElementById('aiTipsStatus');
 
         fetch('/reviews/ai/tips?certName=' + encodeURIComponent(certName))
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                loading.style.display = 'none';
-                result.style.display  = 'block';
-                text.textContent = data.result || (data.error || '결과를 가져오지 못했습니다.');
-                if (status) { status.style.display = 'inline-block'; }
+            .then(function(r) {
+                if (!r.ok) {
+                    return r.text().then(function(t) { throw new Error('HTTP ' + r.status + ': ' + t.substring(0, 200)); });
+                }
+                return r.json();
             })
-            .catch(function() {
-                loading.style.display = 'none';
-                result.style.display  = 'block';
-                text.textContent = 'Ollama 연결에 실패했습니다. Ollama가 실행 중인지 확인해주세요.';
+            .then(function(data) {
+                tipsLoading.style.display = 'none';
+                tipsResult.style.display  = 'block';
+                tipsText.textContent = data.result || (data.error || '결과를 가져오지 못했습니다.');
+                if (tipsBadge) { tipsBadge.style.display = 'inline-block'; }
+            })
+            .catch(function(err) {
+                tipsLoading.style.display = 'none';
+                tipsResult.style.display  = 'block';
+                tipsText.textContent = err && err.message ? err.message : 'Ollama가 실행 중인지 확인해주세요.';
             });
     }
 </script>

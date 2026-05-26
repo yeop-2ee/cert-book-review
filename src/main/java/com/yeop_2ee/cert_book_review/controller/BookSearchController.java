@@ -26,28 +26,27 @@ public class BookSearchController {
 
     @GetMapping("/api/books")
     public String searchBooks(@RequestParam String query) {
-        log.info("책 검색 요청: " + query);
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Naver-Client-Id", clientId);
+            headers.set("X-Naver-Client-Secret", clientSecret);
 
-        // 1. 네이버 API 인증 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Naver-Client-Id", clientId);
-        headers.set("X-Naver-Client-Secret", clientSecret);
+            HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        HttpEntity<String> entity = new HttpEntity<>(headers);
+            URI uri = UriComponentsBuilder
+                    .fromHttpUrl("https://openapi.naver.com/v1/search/book.json")
+                    .queryParam("query", query)
+                    .queryParam("display", 10)
+                    .encode()
+                    .build()
+                    .toUri();
 
-        // 2. URI 빌더로 URL 생성 (인코딩을 한 번만 처리)
-        URI uri = UriComponentsBuilder
-                .fromHttpUrl("https://openapi.naver.com/v1/search/book.json")
-                .queryParam("query", query)
-                .queryParam("display", 10)
-                .encode()
-                .build()
-                .toUri();
-
-        // 3. 네이버 책 검색 API 호출
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
-
-        return response.getBody();
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
+            return response.getBody();
+        } catch (Exception e) {
+            log.warn("네이버 책 검색 API 실패 - query: {}, error: {}", query, e.getMessage());
+            return "{\"items\":[]}";
+        }
     }
 }

@@ -47,9 +47,9 @@
 | View | Mustache + Bootstrap 5 |
 | Database | H2 (In-Memory) |
 | ORM | Spring Data JPA (CrudRepository) |
-| 외부 API | 네이버 책 검색 API |
+| 외부 API | 네이버 책 검색 API, Q-net 자격증 API |
 | 차트 | Chart.js 4.4.0 + chartjs-plugin-datalabels |
-| AI | Ollama (gemma3:12b) — 로컬 LLM |
+| AI | Ollama (gemma3:4b) — 로컬 LLM |
 | 개발 도구 | IntelliJ IDEA |
 | 언어 | Java 17 |
 
@@ -61,7 +61,7 @@ AI 분석 기능은 [Ollama](https://ollama.com)가 로컬에서 실행 중이�
 
 ```bash
 # Ollama 설치 후 모델 실행
-ollama run gemma3:12b
+ollama run gemma3:4b
 ```
 
 Ollama가 실행되지 않은 경우 AI 분석 버튼은 오류 메시지를 표시합니다.  
@@ -93,7 +93,9 @@ src/main/java/com/yeop_2ee/cert_book_review/
 ├── client/
 │   └── OllamaClient.java       # Ollama REST API 클라이언트
 ├── controller/
-│   └── ReviewController.java   # 전체 라우팅 및 AI 엔드포인트
+│   ├── ReviewController.java   # 전체 라우팅 및 AI 엔드포인트
+│   ├── BookSearchController.java  # 네이버 책 검색 API 프록시
+│   └── CertSearchController.java  # Q-net 자격증 목록 API 프록시
 ├── repository/
 │   └── ReviewRepository.java
 ├── entity/
@@ -103,8 +105,7 @@ src/main/java/com/yeop_2ee/cert_book_review/
     ├── BookRank.java
     ├── BookDetail.java
     ├── CertRanking.java
-    ├── CertSummary.java
-    └── PageItem.java
+    └── CertSummary.java
 
 src/main/resources/
 ├── templates/
@@ -129,8 +130,7 @@ src/main/resources/
 
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
-| GET | `/reviews/ai/recommend-reason` | 특정 교재 추천 이유 생성 |
-| GET | `/reviews/ai/book-summary` | 특정 교재 리뷰 요약 |
+| GET | `/reviews/ai/recommend-reason` | 1위 교재 추천 이유 생성 |
 | GET | `/reviews/ai/cert-summary` | 자격증 전체 리뷰 요약 |
 | GET | `/reviews/ai/tips` | 자격증 합격 팁 생성 |
 
@@ -143,19 +143,26 @@ src/main/resources/
 git clone https://github.com/yeop-2ee/cert-book-review.git
 ```
 
-2. (선택) Ollama 실행 — AI 기능 사용 시
-```bash
-ollama run gemma3:12b
+2. API 키 설정 — `src/main/resources/application-local.properties` 파일 생성
+```properties
+naver.client-id=YOUR_NAVER_CLIENT_ID
+naver.client-secret=YOUR_NAVER_CLIENT_SECRET
+qnet.service-key=YOUR_QNET_SERVICE_KEY
 ```
 
-3. IntelliJ IDEA에서 프로젝트 열기 후 `CertBookReviewApplication.java` 실행
+3. (선택) Ollama 실행 — AI 기능 사용 시
+```bash
+ollama run gemma3:4b
+```
 
-4. 브라우저에서 접속
+4. IntelliJ IDEA에서 프로젝트 열기 후 `CertBookReviewApplication.java` 실행
+
+5. 브라우저에서 접속
 ```
 http://localhost:8080/reviews
 ```
 
-5. H2 콘솔 (DB 직접 확인)
+6. H2 콘솔 (DB 직접 확인)
 ```
 http://localhost:8080/h2-console
 JDBC URL : jdbc:h2:mem:testdb

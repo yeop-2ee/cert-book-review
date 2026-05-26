@@ -66,15 +66,14 @@ public class CertSearchController {
             }
 
             if (certNames.isEmpty()) {
-                log.warn("API 응답은 받았지만 목록이 비어있어 기본 목록을 사용합니다.");
+                log.warn("자격증 API 응답이 비어있어 기본 목록을 사용합니다.");
                 return DEFAULT_CERT_LIST;
             }
 
-            log.info("자격증 목록 조회 완료: " + certNames.size() + "건");
             return certNames;
 
         } catch (Exception e) {
-            log.warn("자격증 API 연결 실패 - 기본 목록 사용: " + e.getMessage());
+            log.warn("자격증 API 연결 실패 - 기본 목록 사용: {}", e.getMessage());
             return DEFAULT_CERT_LIST;
         }
     }
