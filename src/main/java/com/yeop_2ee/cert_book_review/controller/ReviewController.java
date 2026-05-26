@@ -109,8 +109,11 @@ public class ReviewController {
 
         // ── 5. 모델에 등록 (필터링·페이지네이션은 JS 처리) ──
         model.addAttribute("total", total);
+        model.addAttribute("totalFmt", String.format("%,d", total));
         model.addAttribute("certCount", uniqueCerts.size());
+        model.addAttribute("certCountFmt", String.format("%,d", uniqueCerts.size()));
         model.addAttribute("passedCount", passedCount);
+        model.addAttribute("passedCountFmt", String.format("%,d", passedCount));
         model.addAttribute("passRate", passRateNum + "%");
         model.addAttribute("top5RankList", top5RankList);
         model.addAttribute("recentPassedList", recentPassedList);
@@ -118,6 +121,11 @@ public class ReviewController {
         model.addAttribute("reviewList", allReviews);
 
         return "reviews/index";
+    }
+
+    @GetMapping("/reviews/index")
+    public String indexAlias() {
+        return "redirect:/reviews";
     }
 
     @GetMapping("/reviews/new")
@@ -222,9 +230,14 @@ public class ReviewController {
         model.addAttribute("certName", certName);
         model.addAttribute("certNames", certNames);
         model.addAttribute("totalReviews", filtered.size());
+        model.addAttribute("totalReviewsFmt", String.format("%,d", filtered.size()));
+        int diffTotal = diffLow + diffMid + diffHigh;
         model.addAttribute("diffLow", diffLow);
         model.addAttribute("diffMid", diffMid);
         model.addAttribute("diffHigh", diffHigh);
+        model.addAttribute("diffLowPct",  diffTotal > 0 ? Math.round(diffLow  * 100.0 / diffTotal) : 0);
+        model.addAttribute("diffMidPct",  diffTotal > 0 ? Math.round(diffMid  * 100.0 / diffTotal) : 0);
+        model.addAttribute("diffHighPct", diffTotal > 0 ? Math.round(diffHigh * 100.0 / diffTotal) : 0);
         // 공부 기간별 통계 (Chart.js에 개별 전달)
         model.addAttribute("pr0", pCount[0] > 0 ? pPassed[0] * 100 / pCount[0] : 0);
         model.addAttribute("pr1", pCount[1] > 0 ? pPassed[1] * 100 / pCount[1] : 0);

@@ -45,12 +45,12 @@
                     <td class="text-center fw-bold" style="color:#6366f1;">{{rank}}</td>
                     <td style="font-size:0.85rem;">
                         {{bookTitle}} {{#top}}<span class="badge badge-indigo me-1" style="font-size:0.68rem; vertical-align:middle;">★ 추천</span>{{/top}}</td>
-                    <td class="text-center"><span class="badge badge-indigo">{{passedCount}}</span></td>
-                    <td class="text-center" style="color:#94a3b8; font-size:0.82rem;">{{totalCount}}</td>
+                    <td class="text-center"><span class="badge badge-indigo num-fmt">{{passedCount}}</span></td>
+                    <td class="text-center num-fmt" style="color:#94a3b8; font-size:0.82rem;">{{totalCount}}</td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress flex-grow-1">
-                                <div class="progress-bar" style="background:#818cf8; width:{{passRateNum}}%; border-radius:10px;"></div>
+                                <div class="progress-bar" data-width="{{passRateNum}}" style="background:#818cf8; width:0%; border-radius:10px;"></div>
                             </div>
                             <small style="min-width:30px; color:#6366f1; font-weight:600; text-align:right; font-size:0.78rem;">{{passRate}}</small>
                         </div>
@@ -88,7 +88,7 @@
 
     if (cards.length > 0) {
         filterWrap.style.display = "block";
-        matchCount.textContent = "총 " + cards.length + "개 자격증";
+        matchCount.textContent = "총 " + cards.length.toLocaleString("ko-KR") + "개 자격증";
 
         // 카드에서 자격증 이름 읽어 datalist 자동 생성
         var datalist = document.getElementById("certSearchList");
@@ -115,9 +115,9 @@
         noResult.style.display = (keyword !== "" && visible === 0) ? "block" : "none";
 
         if (keyword === "") {
-            matchCount.textContent = "총 " + cards.length + "개 자격증";
+            matchCount.textContent = "총 " + cards.length.toLocaleString("ko-KR") + "개 자격증";
         } else {
-            matchCount.textContent = visible + "개 자격증 검색됨";
+            matchCount.textContent = visible.toLocaleString("ko-KR") + "개 자격증 검색됨";
         }
     }
 

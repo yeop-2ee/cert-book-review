@@ -34,12 +34,12 @@
             </form>
             {{#certName}}
             <div class="mt-2" style="font-size:0.78rem; color:#6366f1; font-weight:500;">
-                {{certName}} · 총 {{totalReviews}}개 리뷰 기준
+                {{certName}} · 총 {{totalReviewsFmt}}개 리뷰 기준
             </div>
             {{/certName}}
             {{^certName}}
             <div class="mt-2" style="font-size:0.78rem; color:#94a3b8;">
-                전체 · 총 {{totalReviews}}개 리뷰 기준
+                전체 · 총 {{totalReviewsFmt}}개 리뷰 기준
             </div>
             {{/certName}}
         </div>
@@ -84,7 +84,7 @@
                     <td>
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress flex-grow-1">
-                                <div class="progress-bar" style="background:#818cf8; width:{{pr0}}%; border-radius:10px;"></div>
+                                <div class="progress-bar" data-width="{{pr0}}" style="background:#818cf8; width:0%; border-radius:10px;"></div>
                             </div>
                             <small style="min-width:36px; color:#6366f1; font-weight:600; text-align:right;">{{pr0}}%</small>
                         </div>
@@ -96,7 +96,7 @@
                     <td>
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress flex-grow-1">
-                                <div class="progress-bar" style="background:#818cf8; width:{{pr1}}%; border-radius:10px;"></div>
+                                <div class="progress-bar" data-width="{{pr1}}" style="background:#818cf8; width:0%; border-radius:10px;"></div>
                             </div>
                             <small style="min-width:36px; color:#6366f1; font-weight:600; text-align:right;">{{pr1}}%</small>
                         </div>
@@ -108,7 +108,7 @@
                     <td>
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress flex-grow-1">
-                                <div class="progress-bar" style="background:#818cf8; width:{{pr2}}%; border-radius:10px;"></div>
+                                <div class="progress-bar" data-width="{{pr2}}" style="background:#818cf8; width:0%; border-radius:10px;"></div>
                             </div>
                             <small style="min-width:36px; color:#6366f1; font-weight:600; text-align:right;">{{pr2}}%</small>
                         </div>
@@ -120,7 +120,7 @@
                     <td>
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress flex-grow-1">
-                                <div class="progress-bar" style="background:#818cf8; width:{{pr3}}%; border-radius:10px;"></div>
+                                <div class="progress-bar" data-width="{{pr3}}" style="background:#818cf8; width:0%; border-radius:10px;"></div>
                             </div>
                             <small style="min-width:36px; color:#6366f1; font-weight:600; text-align:right;">{{pr3}}%</small>
                         </div>
@@ -142,11 +142,13 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script>
     {{#hasData}}
     // 난이도 분포 도넛 차트
     new Chart(document.getElementById("diffChart"), {
         type: "doughnut",
+        plugins: [ChartDataLabels],
         data: {
             labels: ["하", "중", "상"],
             datasets: [{
@@ -158,7 +160,26 @@
         },
         options: {
             plugins: {
-                legend: { position: "bottom", labels: { font: { size: 12 }, padding: 14 } }
+                legend: { position: "bottom", labels: { font: { size: 12 }, padding: 14 } },
+                datalabels: {
+                    formatter: function(value, context) {
+                        var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                        var pct = total > 0 ? Math.round(value / total * 100) : 0;
+                        return pct >= 5 ? pct + "%" : "";
+                    },
+                    color: "#374151",
+                    font: { weight: "600", size: 12 }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                            var val = context.parsed;
+                            var pct = total > 0 ? Math.round(val / total * 100) : 0;
+                            return " " + context.label + ": " + val + "개 (" + pct + "%)";
+                        }
+                    }
+                }
             },
             cutout: "65%"
         }

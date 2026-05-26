@@ -1,5 +1,39 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
         crossorigin="anonymous"></script>
+<script>
+    // num-fmt: 콤마 포맷
+    document.querySelectorAll(".num-fmt").forEach(function(el) {
+        var n = parseInt(el.textContent.replace(/,/g, ""), 10);
+        if (!isNaN(n)) el.textContent = n.toLocaleString("ko-KR");
+    });
+
+    // countUp 애니메이션 (.stat-num)
+    document.querySelectorAll(".stat-num").forEach(function(el) {
+        var text = el.textContent.trim();
+        var isPct = text.endsWith("%");
+        var raw = parseInt(text.replace(/[^0-9]/g, ""), 10);
+        if (isNaN(raw) || raw === 0) return;
+        var duration = 900;
+        var start = null;
+        el.textContent = isPct ? "0%" : "0";
+        function step(ts) {
+            if (!start) start = ts;
+            var progress = Math.min((ts - start) / duration, 1);
+            var eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            var current = Math.round(raw * eased);
+            el.textContent = isPct ? current + "%" : current.toLocaleString("ko-KR");
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    });
+
+    // 프로그레스 바 애니메이션 (data-width)
+    document.querySelectorAll(".progress-bar[data-width]").forEach(function(bar) {
+        var w = parseFloat(bar.getAttribute("data-width")) || 0;
+        bar.style.transition = "width 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        setTimeout(function() { bar.style.width = w + "%"; }, 80);
+    });
+</script>
 </body>
 </html>

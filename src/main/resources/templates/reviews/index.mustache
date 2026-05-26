@@ -7,14 +7,14 @@
         <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="stat-line" style="background:#818cf8;"></div>
-                <div class="stat-num">{{total}}</div>
+                <div class="stat-num">{{totalFmt}}</div>
                 <div class="stat-label">총 리뷰 수</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="stat-line" style="background:#34d399;"></div>
-                <div class="stat-num">{{certCount}}</div>
+                <div class="stat-num">{{certCountFmt}}</div>
                 <div class="stat-label">등록 자격증 수</div>
             </div>
         </div>
@@ -28,7 +28,7 @@
         <div class="col-6 col-md-3">
             <div class="stat-card">
                 <div class="stat-line" style="background:#f472b6;"></div>
-                <div class="stat-num">{{passedCount}}</div>
+                <div class="stat-num">{{passedCountFmt}}</div>
                 <div class="stat-label">합격자 리뷰 수</div>
             </div>
         </div>
@@ -60,7 +60,7 @@
                                 <div style="font-size:0.73rem; color:#94a3b8;">{{certName}}</div>
                             </td>
                             <td class="text-center">
-                                <span class="badge badge-indigo">{{count}}</span>
+                                <span class="badge badge-indigo num-fmt">{{count}}</span>
                             </td>
                         </tr>
                         {{/top5RankList}}
@@ -118,19 +118,19 @@
                 {{#certSummaryList}}
                 <tr data-cert="{{certName}}">
                     <td class="fw-semibold" style="white-space:nowrap;">{{certName}}</td>
-                    <td class="text-center" style="color:#94a3b8;">{{totalCount}}</td>
+                    <td class="text-center num-fmt" style="color:#94a3b8;">{{totalCount}}</td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress flex-grow-1">
-                                <div class="progress-bar" style="background:#818cf8; width:{{passRateNum}}%; border-radius:10px;"></div>
+                                <div class="progress-bar" data-width="{{passRateNum}}" style="background:#818cf8; width:0%; border-radius:10px;"></div>
                             </div>
                             <small style="min-width:34px; color:#6366f1; font-weight:600; text-align:right;">{{passRate}}</small>
                         </div>
                     </td>
                     <td class="text-center">
-                        {{#diffLow}}<span class="badge badge-green">하</span>{{/diffLow}}
-                        {{#diffMid}}<span class="badge badge-amber">중</span>{{/diffMid}}
-                        {{#diffHigh}}<span class="badge badge-red">상</span>{{/diffHigh}}
+                        {{#diffLow}}<span class="badge badge-diff-low">하</span>{{/diffLow}}
+                        {{#diffMid}}<span class="badge badge-diff-mid">중</span>{{/diffMid}}
+                        {{#diffHigh}}<span class="badge badge-diff-high">상</span>{{/diffHigh}}
                     </td>
                     <td style="color:#94a3b8; font-size:0.83rem;">{{topBook}}</td>
                     <td class="text-center" style="white-space:nowrap;">
@@ -200,9 +200,9 @@
                     <td>{{certName}}</td>
                     <td style="color:#64748b;">{{bookTitle}}</td>
                     <td class="text-center">
-                        {{#diffLow}}<span class="badge badge-green">하</span>{{/diffLow}}
-                        {{#diffMid}}<span class="badge badge-amber">중</span>{{/diffMid}}
-                        {{#diffHigh}}<span class="badge badge-red">상</span>{{/diffHigh}}
+                        {{#diffLow}}<span class="badge badge-diff-low">하</span>{{/diffLow}}
+                        {{#diffMid}}<span class="badge badge-diff-mid">중</span>{{/diffMid}}
+                        {{#diffHigh}}<span class="badge badge-diff-high">상</span>{{/diffHigh}}
                     </td>
                     <td class="text-center">
                         {{#passedY}}<span class="badge badge-green">합격</span>{{/passedY}}
@@ -248,7 +248,7 @@ function renderCertPage() {
     certRows.forEach(function(r) { r.style.display = "none"; });
     certFiltered.slice(start, start + CERT_PAGE_SIZE).forEach(function(r) { r.style.display = ""; });
 
-    document.getElementById("certSummaryCount").textContent = "총 " + total + "개";
+    document.getElementById("certSummaryCount").textContent = "총 " + total.toLocaleString("ko-KR") + "개";
     renderPagination("certPagination", "certPageInfo", certCurrentPage, totalPages, function(p) {
         certCurrentPage = p; renderCertPage();
     });
@@ -285,7 +285,7 @@ function renderReviewPage() {
     reviewRows.forEach(function(r) { r.style.display = "none"; });
     reviewFiltered.slice(start, start + REVIEW_PAGE_SIZE).forEach(function(r) { r.style.display = ""; });
 
-    document.getElementById("reviewCount").textContent = "총 " + total + "건";
+    document.getElementById("reviewCount").textContent = "총 " + total.toLocaleString("ko-KR") + "건";
     renderPagination("reviewPagination", "reviewPageInfo", reviewCurrentPage, totalPages, function(p) {
         reviewCurrentPage = p; renderReviewPage();
     });
