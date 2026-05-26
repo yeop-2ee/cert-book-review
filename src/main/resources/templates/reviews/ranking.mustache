@@ -3,7 +3,7 @@
 <div class="container mt-4 pb-5" style="max-width:720px;">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="mb-0 fw-semibold" style="color:#1e293b;">자격증별 교재 랭킹 &amp; 추천</h6>
+        <h6 class="mb-0 fw-semibold" style="color:#1e293b;">자격증별 교재 랭킹</h6>
         <a href="/reviews" class="btn btn-soft btn-sm" style="font-size:0.8rem;">대시보드로</a>
     </div>
 
@@ -31,19 +31,20 @@
         <table class="table mb-0">
             <thead>
                 <tr>
-                    <th style="width:40px;" class="text-center">순위</th>
+                    <th style="width:40px; white-space:nowrap;" class="text-center">순위</th>
                     <th>교재 이름</th>
-                    <th style="width:70px;" class="text-center">합격자</th>
-                    <th style="width:60px;" class="text-center">총 리뷰</th>
+                    <th style="width:70px; white-space:nowrap;" class="text-center">합격자</th>
+                    <th style="width:60px; white-space:nowrap;" class="text-center">총 리뷰</th>
                     <th style="min-width:130px;">합격률</th>
-                    <th style="width:90px;" class="text-center">평균 기간</th>
+                    <th style="width:90px; white-space:nowrap;" class="text-center">평균 기간</th>
                 </tr>
             </thead>
             <tbody>
                 {{#books}}
                 <tr>
                     <td class="text-center fw-bold" style="color:#6366f1;">{{rank}}</td>
-                    <td style="font-size:0.85rem;">{{bookTitle}}</td>
+                    <td style="font-size:0.85rem;">
+                        {{bookTitle}} {{#top}}<span class="badge badge-indigo me-1" style="font-size:0.68rem; vertical-align:middle;">★ 추천</span>{{/top}}</td>
                     <td class="text-center"><span class="badge badge-indigo">{{passedCount}}</span></td>
                     <td class="text-center" style="color:#94a3b8; font-size:0.82rem;">{{totalCount}}</td>
                     <td>

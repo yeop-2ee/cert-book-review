@@ -58,9 +58,23 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">공부 기간</label>
-                    <input type="text" class="form-control form-control-sm" name="studyPeriod"
-                           placeholder="예) 3개월" style="border-color:#e5e7eb; border-radius:8px;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label mb-0" style="font-size:0.82rem; color:#6b7280; font-weight:600;">공부 기간</label>
+                        <span id="periodDisplay" class="period-badge">1개월</span>
+                    </div>
+                    <div class="period-slider-wrap">
+                        <input type="range" id="periodSlider" class="period-slider" min="0" max="12" value="3">
+                        <!-- 라벨 위치: left = N/12 × (100% - 20px) + 10px, translateX(-50%) 로 중앙 정렬 -->
+                        <div style="position:relative; height:18px; margin-top:6px;">
+                            <span style="position:absolute; left:10px;                       transform:translateX(-50%); font-size:0.69rem; color:#94a3b8; white-space:nowrap;">1주</span>
+                            <span style="position:absolute; left:calc(25% + 5px);            transform:translateX(-50%); font-size:0.69rem; color:#94a3b8; white-space:nowrap;">1개월</span>
+                            <span style="position:absolute; left:calc(41.667% + 1.667px);    transform:translateX(-50%); font-size:0.69rem; color:#94a3b8; white-space:nowrap;">3개월</span>
+                            <span style="position:absolute; left:calc(66.667% - 3.333px);    transform:translateX(-50%); font-size:0.69rem; color:#94a3b8; white-space:nowrap;">6개월</span>
+                            <span style="position:absolute; left:calc(83.333% - 6.667px);    transform:translateX(-50%); font-size:0.69rem; color:#94a3b8; white-space:nowrap;">1년</span>
+                            <span style="position:absolute; left:calc(100% - 10px);          transform:translateX(-50%); font-size:0.69rem; color:#94a3b8; white-space:nowrap;">2년+</span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="studyPeriod" id="studyPeriodHidden" value="1개월">
                 </div>
 
                 <div class="mb-3">
@@ -88,6 +102,22 @@
 </div>
 
 <script>
+    // ── 공부 기간 슬라이더 ────────────────────────────────
+    var PERIODS = ["1주","2주","3주","1개월","2개월","3개월","4개월","5개월","6개월","9개월","1년","1년 6개월","2년 이상"];
+    var periodSlider  = document.getElementById("periodSlider");
+    var periodDisplay = document.getElementById("periodDisplay");
+    var periodHidden  = document.getElementById("studyPeriodHidden");
+
+    function updateSlider(idx) {
+        var pct = (idx / periodSlider.max) * 100;
+        periodSlider.style.background =
+            "linear-gradient(to right,#6366f1 0%,#6366f1 " + pct + "%,#e2e8f0 " + pct + "%,#e2e8f0 100%)";
+        periodDisplay.textContent = PERIODS[idx];
+        periodHidden.value = PERIODS[idx];
+    }
+    updateSlider(3);
+    periodSlider.addEventListener("input", function() { updateSlider(+this.value); });
+
     var certInput = document.getElementById("certNameInput");
     var certLoadMsg = document.getElementById("certLoadMsg");
 

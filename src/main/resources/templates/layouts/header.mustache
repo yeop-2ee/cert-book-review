@@ -278,6 +278,62 @@
             color: #94a3b8;
             letter-spacing: 0.03em;
         }
+
+        /* ── 공부 기간 슬라이더 ── */
+        .period-slider-wrap {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 1rem 1.1rem 0.8rem;
+        }
+        .period-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            border-radius: 99px;
+            outline: none;
+            cursor: pointer;
+            background: linear-gradient(to right, #6366f1 0%, #6366f1 25%, #e2e8f0 25%, #e2e8f0 100%);
+            transition: background 0s;
+        }
+        .period-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2.5px solid #6366f1;
+            box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+            cursor: pointer;
+            transition: box-shadow 0.15s, transform 0.1s;
+        }
+        .period-slider::-webkit-slider-thumb:hover {
+            box-shadow: 0 0 0 6px rgba(99,102,241,0.12);
+            transform: scale(1.1);
+        }
+        .period-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2.5px solid #6366f1;
+            box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+            cursor: pointer;
+        }
+        .period-badge {
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: #6366f1;
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 7px;
+            padding: 0.18em 0.65em;
+            min-width: 60px;
+            text-align: center;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -288,7 +344,7 @@
             <ul class="navbar-nav ms-2">
                 <li class="nav-item"><a class="nav-link" href="/reviews">대시보드</a></li>
                 <li class="nav-item"><a class="nav-link" href="/reviews/new">리뷰 작성</a></li>
-                <li class="nav-item"><a class="nav-link" href="/reviews/ranking">교재 랭킹 &amp; 추천</a></li>
+                <li class="nav-item"><a class="nav-link" href="/reviews/ranking">교재 랭킹</a></li>
                 <li class="nav-item"><a class="nav-link" href="/reviews/stats">통계 분석</a></li>
             </ul>
         </div>

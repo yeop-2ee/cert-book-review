@@ -14,4 +14,6 @@ public class BookDetail {
     private String passRate;       // 합격률 문자열
     private int passRateNum;       // 합격률 숫자 (progress bar용)
     private String avgStudyPeriod; // 평균 공부 기간
+
+    public boolean isTop() { return rank == 1; }
 }

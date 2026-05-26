@@ -162,7 +162,7 @@ public class ReviewController {
 
         if ("delete".equals(action)) {
             reviewRepository.delete(review);
-            rttr.addFlashAttribute("msg", "리뷰가 삭제됐습니다!");
+            rttr.addFlashAttribute("msg", "리뷰가 삭제되었습니다!");
             return "redirect:/reviews";
         }
 
