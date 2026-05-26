@@ -1,0 +1,62 @@
+{{>layouts/header}}
+
+<div class="container mt-4 pb-5" style="max-width:680px;">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>리뷰 상세</span>
+            <a href="/reviews" class="btn btn-soft btn-sm" style="font-size:0.8rem;">목록으로</a>
+        </div>
+        <div class="card-body px-4 py-3">
+            {{#review}}
+            <table class="table mb-4">
+                <tbody>
+                    <tr>
+                        <th style="width:110px; color:#9ca3af; font-weight:500; background:#f9fafb;">자격증</th>
+                        <td>{{certName}}</td>
+                    </tr>
+                    <tr>
+                        <th style="color:#9ca3af; font-weight:500; background:#f9fafb;">교재</th>
+                        <td>{{bookTitle}}</td>
+                    </tr>
+                    <tr>
+                        <th style="color:#9ca3af; font-weight:500; background:#f9fafb;">난이도</th>
+                        <td>{{difficulty}}</td>
+                    </tr>
+                    <tr>
+                        <th style="color:#9ca3af; font-weight:500; background:#f9fafb;">합격 여부</th>
+                        <td>{{passed}}</td>
+                    </tr>
+                    <tr>
+                        <th style="color:#9ca3af; font-weight:500; background:#f9fafb;">공부 기간</th>
+                        <td>{{studyPeriod}}</td>
+                    </tr>
+                    <tr>
+                        <th style="color:#9ca3af; font-weight:500; background:#f9fafb;">리뷰 내용</th>
+                        <td style="line-height:1.7;">{{content}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="d-flex gap-2 mb-3">
+                <a href="/reviews/{{id}}/pin-check?action=edit" class="btn btn-sm btn-primary">수정</a>
+                <a href="/reviews/{{id}}/pin-check?action=delete" class="btn btn-sm" style="background:#fee2e2; border:1px solid #fecaca; color:#dc2626; font-size:0.84rem;">삭제</a>
+            </div>
+
+            <!-- 이 자격증 바로가기 -->
+            <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:0.9rem 1.1rem;">
+                <div class="section-label mb-2">이 자격증 더 알아보기</div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="/reviews/stats?certName={{certName}}" class="btn btn-soft btn-sm">
+                        {{certName}} 통계 분석
+                    </a>
+                    <a href="/reviews/ranking?certName={{certName}}" class="btn btn-soft btn-sm">
+                        {{certName}} 교재 랭킹 &amp; 추천
+                    </a>
+                </div>
+            </div>
+            {{/review}}
+        </div>
+    </div>
+</div>
+
+{{>layouts/footer}}

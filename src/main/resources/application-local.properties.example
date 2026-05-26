@@ -1,0 +1,7 @@
+# 이 파일을 복사해서 application-local.properties 로 이름을 바꾸고
+# 아래 값을 본인의 API 키로 채워주세요.
+
+naver.client-id=YOUR_NAVER_CLIENT_ID
+naver.client-secret=YOUR_NAVER_CLIENT_SECRET
+
+qnet.service-key=YOUR_QNET_SERVICE_KEY

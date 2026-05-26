@@ -1,0 +1,35 @@
+{{>layouts/header}}
+
+<div class="container mt-5 pb-5" style="max-width:400px;">
+    <div class="card">
+        <div class="card-header">PIN 확인</div>
+        <div class="card-body px-4 py-4">
+            <p style="font-size:0.85rem; color:#9ca3af; margin-bottom:1.2rem;">
+                리뷰 작성 시 등록한 4자리 PIN을 입력해주세요.
+            </p>
+
+            {{#errorMsg}}
+            <div class="mb-3 px-3 py-2" style="background:#fff0f2; border-radius:8px; color:#dc2626; font-size:0.85rem; border:1px solid #fecaca;">
+                {{errorMsg}}
+            </div>
+            {{/errorMsg}}
+
+            <form action="/reviews/{{id}}/pin-check" method="post">
+                <input type="hidden" name="action" value="{{action}}">
+                <div class="mb-4">
+                    <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">PIN 번호</label>
+                    <input type="password" class="form-control" name="pin"
+                           maxlength="4" pattern="[0-9]{4}" autofocus
+                           placeholder="4자리 숫자"
+                           style="border-color:#e5e7eb; border-radius:8px; letter-spacing:0.3em; font-size:1.1rem; text-align:center;">
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm px-4">확인</button>
+                    <a href="/reviews/{{id}}" class="btn btn-soft btn-sm">취소</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{>layouts/footer}}

@@ -1,0 +1,80 @@
+{{>layouts/header}}
+
+<div class="container mt-4 pb-5" style="max-width:680px;">
+    <div class="card">
+        <div class="card-header">리뷰 수정</div>
+        <div class="card-body px-4 py-4">
+            {{#review}}
+            <form action="/reviews/update" method="post">
+                <input type="hidden" name="id" value="{{id}}">
+                <input type="hidden" name="pin" value="{{pin}}">
+
+                <div class="mb-3">
+                    <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">자격증 이름</label>
+                    <input type="text" class="form-control form-control-sm" name="certName" value="{{certName}}"
+                           list="certList" autocomplete="off" style="border-color:#e5e7eb; border-radius:8px;">
+                    <datalist id="certList">
+                        <option value="정보처리기사">
+                        <option value="정보처리산업기사">
+                        <option value="정보보안기사">
+                        <option value="컴퓨터활용능력 1급">
+                        <option value="컴퓨터활용능력 2급">
+                        <option value="워드프로세서">
+                        <option value="빅데이터분석기사">
+                        <option value="SQLD">
+                        <option value="SQLP">
+                        <option value="네트워크관리사 1급">
+                        <option value="리눅스마스터 1급">
+                        <option value="전산세무 1급">
+                        <option value="전산회계 1급">
+                        <option value="공인중개사">
+                    </datalist>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">사용 교재</label>
+                    <input type="text" class="form-control form-control-sm" name="bookTitle" value="{{bookTitle}}"
+                           style="border-color:#e5e7eb; border-radius:8px;">
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">체감 난이도</label>
+                        <select class="form-select form-select-sm" name="difficulty" style="border-color:#e5e7eb; border-radius:8px;">
+                            <option value="하">하</option>
+                            <option value="중">중</option>
+                            <option value="상">상</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">합격 여부</label>
+                        <select class="form-select form-select-sm" name="passed" style="border-color:#e5e7eb; border-radius:8px;">
+                            <option value="Y">합격</option>
+                            <option value="N">불합격</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">공부 기간</label>
+                    <input type="text" class="form-control form-control-sm" name="studyPeriod" value="{{studyPeriod}}"
+                           style="border-color:#e5e7eb; border-radius:8px;">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">리뷰 내용</label>
+                    <textarea class="form-control form-control-sm" rows="4" name="content"
+                              style="border-color:#e5e7eb; border-radius:8px; line-height:1.7;">{{content}}</textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm px-4">수정 완료</button>
+                    <a href="/reviews/{{id}}" class="btn btn-soft btn-sm">취소</a>
+                </div>
+            </form>
+            {{/review}}
+        </div>
+    </div>
+</div>
+
+{{>layouts/footer}}

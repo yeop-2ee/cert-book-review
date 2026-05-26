@@ -1,0 +1,134 @@
+{{>layouts/header}}
+
+<div class="container mt-4 pb-5" style="max-width:720px;">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0 fw-semibold" style="color:#1e293b;">자격증별 교재 랭킹 &amp; 추천</h6>
+        <a href="/reviews" class="btn btn-soft btn-sm" style="font-size:0.8rem;">대시보드로</a>
+    </div>
+
+    <!-- 자격증 검색 필터 (루프 밖) -->
+    <div id="certFilterWrap" style="display:none;" class="mb-3">
+        <div class="card">
+            <div style="padding:0.85rem 1.25rem;">
+                <div class="section-label mb-1">자격증 검색</div>
+                <input type="text" id="certSearch" class="form-control form-control-sm"
+                       placeholder="자격증 이름을 입력하세요" autocomplete="off"
+                       list="certSearchList" oninput="filterCert(this.value)">
+                <datalist id="certSearchList"></datalist>
+                <div id="certMatchCount" class="mt-1" style="font-size:0.77rem; color:#94a3b8;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 자격증별 랭킹 카드 목록 -->
+    {{#certRankingList}}
+    <div class="cert-card card mb-3" data-cert="{{certName}}">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <span>{{certName}}</span>
+            <span class="badge badge-indigo">합격자 교재 순위</span>
+        </div>
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th style="width:40px;" class="text-center">순위</th>
+                    <th>교재 이름</th>
+                    <th style="width:70px;" class="text-center">합격자</th>
+                    <th style="width:60px;" class="text-center">총 리뷰</th>
+                    <th style="min-width:130px;">합격률</th>
+                    <th style="width:90px;" class="text-center">평균 기간</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#books}}
+                <tr>
+                    <td class="text-center fw-bold" style="color:#6366f1;">{{rank}}</td>
+                    <td style="font-size:0.85rem;">{{bookTitle}}</td>
+                    <td class="text-center"><span class="badge badge-indigo">{{passedCount}}</span></td>
+                    <td class="text-center" style="color:#94a3b8; font-size:0.82rem;">{{totalCount}}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1">
+                                <div class="progress-bar" style="background:#818cf8; width:{{passRateNum}}%; border-radius:10px;"></div>
+                            </div>
+                            <small style="min-width:30px; color:#6366f1; font-weight:600; text-align:right; font-size:0.78rem;">{{passRate}}</small>
+                        </div>
+                    </td>
+                    <td class="text-center" style="color:#94a3b8; font-size:0.82rem;">{{avgStudyPeriod}}</td>
+                </tr>
+                {{/books}}
+            </tbody>
+        </table>
+    </div>
+    {{/certRankingList}}
+
+    {{^certRankingList}}
+    <div class="card">
+        <div class="card-body text-center py-5" style="color:#94a3b8; font-size:0.85rem;">
+            아직 합격 리뷰가 없습니다.
+        </div>
+    </div>
+    {{/certRankingList}}
+
+    <!-- 검색 결과 없음 -->
+    <div id="noResult" style="display:none;" class="card">
+        <div class="card-body text-center py-4" style="color:#94a3b8; font-size:0.85rem;">
+            검색 결과가 없습니다.
+        </div>
+    </div>
+
+</div>
+
+<script>
+    var cards = document.querySelectorAll(".cert-card");
+    var filterWrap = document.getElementById("certFilterWrap");
+    var matchCount = document.getElementById("certMatchCount");
+    var noResult = document.getElementById("noResult");
+
+    if (cards.length > 0) {
+        filterWrap.style.display = "block";
+        matchCount.textContent = "총 " + cards.length + "개 자격증";
+
+        // 카드에서 자격증 이름 읽어 datalist 자동 생성
+        var datalist = document.getElementById("certSearchList");
+        cards.forEach(function(card) {
+            var option = document.createElement("option");
+            option.value = card.getAttribute("data-cert");
+            datalist.appendChild(option);
+        });
+    }
+
+    function filterCert(query) {
+        var keyword = query.trim().toLowerCase();
+        var visible = 0;
+
+        cards.forEach(function(card) {
+            if (keyword === "" || card.getAttribute("data-cert").toLowerCase().includes(keyword)) {
+                card.style.display = "block";
+                visible++;
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        noResult.style.display = (keyword !== "" && visible === 0) ? "block" : "none";
+
+        if (keyword === "") {
+            matchCount.textContent = "총 " + cards.length + "개 자격증";
+        } else {
+            matchCount.textContent = visible + "개 자격증 검색됨";
+        }
+    }
+
+    // URL 파라미터에 certName이 있으면 자동 검색
+    if (cards.length > 0) {
+        var urlParams = new URLSearchParams(window.location.search);
+        var initCert = urlParams.get("certName");
+        if (initCert) {
+            document.getElementById("certSearch").value = initCert;
+            filterCert(initCert);
+        }
+    }
+</script>
+
+{{>layouts/footer}}

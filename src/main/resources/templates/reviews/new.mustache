@@ -1,0 +1,195 @@
+{{>layouts/header}}
+
+<div class="container mt-4 pb-5" style="max-width:680px;">
+    <div class="card">
+        <div class="card-header">리뷰 작성</div>
+        <div class="card-body px-4 py-4">
+            <form action="/reviews/create" method="post">
+
+                <div class="mb-3">
+                    <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">자격증 이름</label>
+                    <input type="text" class="form-control form-control-sm" name="certName" id="certNameInput"
+                           list="certList" placeholder="자격증 목록 불러오는 중..."
+                           autocomplete="off" disabled
+                           style="border-color:#e5e7eb; border-radius:8px; background:#f8fafc;">
+                    <datalist id="certList"></datalist>
+                    <div class="mt-1" id="certLoadMsg" style="font-size:0.77rem; color:#94a3b8;">
+                        <span id="certLoadSpinner"
+                              style="display:inline-block; width:10px; height:10px; border:2px solid #c7d2fe;
+                                     border-top-color:#6366f1; border-radius:50%; animation:spin 0.8s linear infinite;
+                                     margin-right:5px; vertical-align:middle;"></span>
+                        자격증 목록 불러오는 중...
+                    </div>
+                    <style>
+                        @keyframes spin { to { transform: rotate(360deg); } }
+                    </style>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">사용 교재</label>
+                    <div class="input-group input-group-sm mb-1">
+                        <input type="text" id="bookSearch" class="form-control" placeholder="교재명 검색"
+                               autocomplete="off" style="border-color:#e5e7eb; border-radius:8px 0 0 8px;">
+                        <button type="button" class="btn btn-sm" onclick="searchBook()"
+                                style="background:#f3f4f6; border:1px solid #e5e7eb; color:#6b7280; border-radius:0 8px 8px 0;">검색</button>
+                    </div>
+                    <div id="bookResults"></div>
+                    <input type="text" class="form-control form-control-sm mt-2" id="bookTitleInput" name="bookTitle"
+                           placeholder="교재명 (검색 후 선택하거나 직접 입력)"
+                           style="border-color:#e5e7eb; border-radius:8px;">
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">체감 난이도</label>
+                        <select class="form-select form-select-sm" name="difficulty" style="border-color:#e5e7eb; border-radius:8px;">
+                            <option value="하">하</option>
+                            <option value="중" selected>중</option>
+                            <option value="상">상</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">합격 여부</label>
+                        <select class="form-select form-select-sm" name="passed" style="border-color:#e5e7eb; border-radius:8px;">
+                            <option value="Y">합격</option>
+                            <option value="N">불합격</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">공부 기간</label>
+                    <input type="text" class="form-control form-control-sm" name="studyPeriod"
+                           placeholder="예) 3개월" style="border-color:#e5e7eb; border-radius:8px;">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">리뷰 내용</label>
+                    <textarea class="form-control form-control-sm" rows="4" name="content"
+                              placeholder="교재 사용 후기를 자유롭게 작성해주세요."
+                              style="border-color:#e5e7eb; border-radius:8px; line-height:1.7;"></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">PIN 번호 (4자리 숫자)</label>
+                    <input type="password" class="form-control form-control-sm" name="pin"
+                           maxlength="4" pattern="[0-9]{4}" placeholder="수정/삭제 시 사용할 4자리 숫자"
+                           style="border-color:#e5e7eb; border-radius:8px; max-width:200px;">
+                    <div class="mt-1" style="font-size:0.77rem; color:#9ca3af;">이 PIN은 나중에 리뷰를 수정하거나 삭제할 때 필요합니다.</div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm px-4">작성 완료</button>
+                    <a href="/reviews" class="btn btn-soft btn-sm">취소</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    var certInput = document.getElementById("certNameInput");
+    var certLoadMsg = document.getElementById("certLoadMsg");
+
+    function enableCertInput(count) {
+        certInput.disabled = false;
+        certInput.placeholder = "자격증을 선택하거나 직접 입력하세요";
+        certInput.style.background = "";
+        certLoadMsg.innerHTML = "총 <strong style='color:#6366f1;'>" + count + "개</strong> 자격증 검색 가능";
+    }
+
+    function failCertInput() {
+        certInput.disabled = false;
+        certInput.placeholder = "직접 입력해주세요";
+        certInput.style.background = "";
+        certLoadMsg.textContent = "자격증 목록을 불러오지 못했습니다. 직접 입력해주세요.";
+    }
+
+    fetch("/api/certs")
+        .then(function(response) { return response.json(); })
+        .then(function(certNames) {
+            var datalist = document.getElementById("certList");
+            if (!certNames || certNames.length === 0) { failCertInput(); return; }
+            certNames.forEach(function(name) {
+                var option = document.createElement("option");
+                option.value = name;
+                datalist.appendChild(option);
+            });
+            enableCertInput(certNames.length);
+        })
+        .catch(function() { failCertInput(); });
+
+    function renderBookResults(data) {
+        var resultsDiv = document.getElementById("bookResults");
+        resultsDiv.innerHTML = "";
+
+        if (!data.items || data.items.length === 0) {
+            resultsDiv.innerHTML = '<div class="book-result-item" style="color:#9ca3af;">검색 결과가 없습니다.</div>';
+            resultsDiv.style.display = "block";
+            return;
+        }
+
+        resultsDiv.style.display = "block";
+        data.items.forEach(function(item) {
+            var title = item.title.replace(/<[^>]*>/g, "");
+            var author = item.author.replace(/<[^>]*>/g, "");
+            var publisher = item.publisher || "";
+
+            var div = document.createElement("div");
+            div.className = "book-result-item";
+            div.innerHTML = '<strong>' + title + '</strong><br>'
+                + '<span style="color:#9ca3af;">' + author + (publisher ? " · " + publisher : "") + '</span>';
+            div.onclick = function() {
+                document.getElementById("bookTitleInput").value = title;
+                resultsDiv.style.display = "none";
+                document.getElementById("bookSearch").value = "";
+            };
+            resultsDiv.appendChild(div);
+        });
+    }
+
+    function fetchBooks(query) {
+        fetch("/api/books?query=" + encodeURIComponent(query))
+            .then(function(response) { return response.json(); })
+            .then(function(data) { renderBookResults(data); })
+            .catch(function() { alert("검색 중 오류가 발생했습니다."); });
+    }
+
+    function searchBook() {
+        var query = document.getElementById("bookSearch").value.trim();
+        if (query === "") { alert("검색어를 입력해주세요."); return; }
+        fetchBooks(query);
+    }
+
+    // 자격증 선택 시 교재 검색 필드 자동 입력 + 검색
+    var certDebounce = null;
+    certInput.addEventListener("input", function() {
+        var certName = this.value.trim();
+        clearTimeout(certDebounce);
+        if (certName === "") return;
+
+        // 교재 검색 필드에도 자격증명 자동 입력
+        document.getElementById("bookSearch").value = certName;
+
+        certDebounce = setTimeout(function() {
+            document.getElementById("bookResults").innerHTML =
+                '<div class="book-result-item" style="color:#94a3b8;">검색 중...</div>';
+            document.getElementById("bookResults").style.display = "block";
+            fetchBooks(certName);
+        }, 600);
+    });
+
+    document.getElementById("bookSearch").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") { e.preventDefault(); searchBook(); }
+    });
+
+    document.addEventListener("click", function(e) {
+        var results = document.getElementById("bookResults");
+        var searchInput = document.getElementById("bookSearch");
+        if (e.target !== searchInput && !results.contains(e.target)) {
+            results.style.display = "none";
+        }
+    });
+</script>
+
+{{>layouts/footer}}

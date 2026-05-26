@@ -1,0 +1,197 @@
+{{>layouts/header}}
+
+<div class="container mt-4 pb-5" style="max-width:800px;">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0 fw-semibold" style="color:#1e293b;">자격증별 통계 분석</h6>
+        <a href="/reviews" class="btn btn-soft btn-sm" style="font-size:0.8rem;">대시보드로</a>
+    </div>
+
+    <!-- 자격증 선택 -->
+    <div class="card mb-4">
+        <div style="padding:0.85rem 1.25rem;">
+            <form method="get" action="/reviews/stats" class="row g-2 align-items-end">
+                <div class="col">
+                    <div class="section-label mb-1">자격증 선택</div>
+                    <input type="text" class="form-control form-control-sm" name="certName"
+                           value="{{certName}}" list="certDatalist"
+                           placeholder="자격증을 선택하거나 직접 입력 (미선택 시 전체)"
+                           autocomplete="off">
+                    <datalist id="certDatalist">
+                        {{#certNames}}
+                        <option value="{{.}}">
+                        {{/certNames}}
+                    </datalist>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary btn-sm px-4">조회</button>
+                </div>
+                {{#certName}}
+                <div class="col-auto">
+                    <a href="/reviews/stats" class="btn btn-soft btn-sm">전체 보기</a>
+                </div>
+                {{/certName}}
+            </form>
+            {{#certName}}
+            <div class="mt-2" style="font-size:0.78rem; color:#6366f1; font-weight:500;">
+                {{certName}} · 총 {{totalReviews}}개 리뷰 기준
+            </div>
+            {{/certName}}
+            {{^certName}}
+            <div class="mt-2" style="font-size:0.78rem; color:#94a3b8;">
+                전체 · 총 {{totalReviews}}개 리뷰 기준
+            </div>
+            {{/certName}}
+        </div>
+    </div>
+
+    {{#hasData}}
+    <!-- 차트 2개 -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-5">
+            <div class="card h-100">
+                <div class="card-header">체감 난이도 분포</div>
+                <div class="card-body d-flex align-items-center justify-content-center" style="padding:1.2rem;">
+                    <canvas id="diffChart" style="max-height:200px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="card h-100">
+                <div class="card-header">공부 기간별 합격률</div>
+                <div class="card-body d-flex align-items-center" style="padding:1.2rem;">
+                    <canvas id="periodChart" style="max-height:200px; width:100%;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 공부 기간별 상세 테이블 -->
+    <div class="card">
+        <div class="card-header">공부 기간별 상세 현황</div>
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>공부 기간</th>
+                    <th class="text-center" style="width:90px;">리뷰 수</th>
+                    <th style="min-width:160px;">합격률</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1개월 미만</td>
+                    <td class="text-center" style="color:#94a3b8;">{{pc0}}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1">
+                                <div class="progress-bar" style="background:#818cf8; width:{{pr0}}%; border-radius:10px;"></div>
+                            </div>
+                            <small style="min-width:36px; color:#6366f1; font-weight:600; text-align:right;">{{pr0}}%</small>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>1~3개월</td>
+                    <td class="text-center" style="color:#94a3b8;">{{pc1}}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1">
+                                <div class="progress-bar" style="background:#818cf8; width:{{pr1}}%; border-radius:10px;"></div>
+                            </div>
+                            <small style="min-width:36px; color:#6366f1; font-weight:600; text-align:right;">{{pr1}}%</small>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>3~6개월</td>
+                    <td class="text-center" style="color:#94a3b8;">{{pc2}}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1">
+                                <div class="progress-bar" style="background:#818cf8; width:{{pr2}}%; border-radius:10px;"></div>
+                            </div>
+                            <small style="min-width:36px; color:#6366f1; font-weight:600; text-align:right;">{{pr2}}%</small>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>6개월 이상</td>
+                    <td class="text-center" style="color:#94a3b8;">{{pc3}}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1">
+                                <div class="progress-bar" style="background:#818cf8; width:{{pr3}}%; border-radius:10px;"></div>
+                            </div>
+                            <small style="min-width:36px; color:#6366f1; font-weight:600; text-align:right;">{{pr3}}%</small>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {{/hasData}}
+
+    {{^hasData}}
+    <div class="card">
+        <div class="card-body text-center py-5" style="color:#94a3b8; font-size:0.85rem;">
+            해당 자격증의 리뷰 데이터가 없습니다.
+        </div>
+    </div>
+    {{/hasData}}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    {{#hasData}}
+    // 난이도 분포 도넛 차트
+    new Chart(document.getElementById("diffChart"), {
+        type: "doughnut",
+        data: {
+            labels: ["하", "중", "상"],
+            datasets: [{
+                data: [{{diffLow}}, {{diffMid}}, {{diffHigh}}],
+                backgroundColor: ["#bbf7d0", "#bfdbfe", "#fecaca"],
+                borderColor: ["#86efac", "#93c5fd", "#fca5a5"],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { position: "bottom", labels: { font: { size: 12 }, padding: 14 } }
+            },
+            cutout: "65%"
+        }
+    });
+
+    // 공부 기간별 합격률 가로 바 차트
+    new Chart(document.getElementById("periodChart"), {
+        type: "bar",
+        data: {
+            labels: ["1개월 미만", "1~3개월", "3~6개월", "6개월 이상"],
+            datasets: [{
+                label: "합격률 (%)",
+                data: [{{pr0}}, {{pr1}}, {{pr2}}, {{pr3}}],
+                backgroundColor: "#c7d2fe",
+                borderColor: "#818cf8",
+                borderWidth: 1,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            indexAxis: "y",
+            scales: {
+                x: {
+                    min: 0, max: 100,
+                    ticks: { callback: function(v) { return v + "%"; }, font: { size: 11 } },
+                    grid: { color: "#f1f5f9" }
+                },
+                y: { ticks: { font: { size: 11 } }, grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+    {{/hasData}}
+</script>
+
+{{>layouts/footer}}
