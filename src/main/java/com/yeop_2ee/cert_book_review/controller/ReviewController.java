@@ -29,14 +29,7 @@ public class ReviewController {
     private static final int CERT_PAGE_SIZE = 5;
 
     @GetMapping("/reviews")
-    public String index(@RequestParam(defaultValue = "") String searchCert,
-                        @RequestParam(defaultValue = "all") String filterPassed,
-                        @RequestParam(defaultValue = "all") String filterDifficulty,
-                        @RequestParam(defaultValue = "1") int page,
-                        @RequestParam(defaultValue = "") String certSearch,
-                        @RequestParam(defaultValue = "1") int certPage,
-                        Model model) {
-
+    public String index(Model model) {
         ArrayList<Review> allReviews = reviewRepository.findAll();
 
         // ── 1. 전체 기준 통계 ───────────────────────────────
@@ -49,7 +42,7 @@ public class ReviewController {
         }
         int passRateNum = total > 0 ? (passedCount * 100 / total) : 0;
 
-        // ── 2. 교재 랭킹 TOP 5 (자격증+교재 기준) ──────────
+        // ── 2. 교재 랭킹 TOP 5 ──────────────────────────────
         Map<String, int[]> top5Map = new LinkedHashMap<>();
         for (Review r : allReviews) {
             if ("Y".equals(r.getPassed())) {
@@ -101,10 +94,8 @@ public class ReviewController {
                 bookCount.put(r.getBookTitle(), bookCount.getOrDefault(r.getBookTitle(), 0) + 1);
             }
             int certPassRateNum = certTotal > 0 ? (certPassed * 100 / certTotal) : 0;
-            String passRateClass = certPassRateNum >= 70 ? "success" : certPassRateNum >= 40 ? "warning" : "danger";
             double avgDiff = (double) diffSum / certTotal;
             String avgDifficulty = avgDiff <= 1.5 ? "하" : avgDiff <= 2.5 ? "중" : "상";
-            String diffClass = "하".equals(avgDifficulty) ? "success" : "중".equals(avgDifficulty) ? "warning" : "danger";
             String topBook = "-";
             int maxCnt = 0;
             for (Map.Entry<String, Integer> b : bookCount.entrySet()) {
@@ -112,82 +103,19 @@ public class ReviewController {
             }
             certSummaryList.add(new CertSummary(
                     certName, certTotal, certPassed,
-                    certPassRateNum + "%", certPassRateNum, passRateClass,
-                    avgDifficulty, diffClass, topBook));
+                    certPassRateNum + "%", certPassRateNum, "",
+                    avgDifficulty, "", topBook));
         }
 
-        // ── 5. 자격증 요약 검색 + 페이지네이션 ────────────
-        String certSearchLower = certSearch.toLowerCase();
-        List<CertSummary> filteredCerts = new ArrayList<>();
-        for (CertSummary cs : certSummaryList) {
-            if (certSearch.isEmpty() || cs.getCertName().toLowerCase().contains(certSearchLower))
-                filteredCerts.add(cs);
-        }
-        int certTotalPages = filteredCerts.isEmpty() ? 1 : (int) Math.ceil((double) filteredCerts.size() / CERT_PAGE_SIZE);
-        if (certPage < 1) certPage = 1;
-        if (certPage > certTotalPages) certPage = certTotalPages;
-        int certFrom = (certPage - 1) * CERT_PAGE_SIZE;
-        List<CertSummary> pagedCertList = filteredCerts.subList(certFrom, Math.min(certFrom + CERT_PAGE_SIZE, filteredCerts.size()));
-        List<PageItem> certPageItems = new ArrayList<>();
-        for (int i = 1; i <= certTotalPages; i++) certPageItems.add(new PageItem(i, i == certPage));
-        String certFilterQuery = "certSearch=" + certSearch + "&searchCert=" + searchCert
-                + "&filterPassed=" + filterPassed + "&filterDifficulty=" + filterDifficulty + "&page=" + page;
-
-        // ── 6. 리뷰 검색 + 필터링 + 페이지네이션 ──────────
-        String searchCertLower = searchCert.toLowerCase();
-        List<Review> filtered = new ArrayList<>();
-        for (Review r : allReviews) {
-            boolean certMatch = searchCert.isEmpty()
-                    || r.getCertName().toLowerCase().contains(searchCertLower)
-                    || r.getBookTitle().toLowerCase().contains(searchCertLower);
-            boolean passedMatch = "all".equals(filterPassed) || filterPassed.equals(r.getPassed());
-            boolean diffMatch = "all".equals(filterDifficulty) || filterDifficulty.equals(r.getDifficulty());
-            if (certMatch && passedMatch && diffMatch) filtered.add(r);
-        }
-        int filteredCount = filtered.size();
-        int totalPages = filteredCount == 0 ? 1 : (int) Math.ceil((double) filteredCount / PAGE_SIZE);
-        if (page < 1) page = 1;
-        if (page > totalPages) page = totalPages;
-        int fromIndex = (page - 1) * PAGE_SIZE;
-        List<Review> pagedList = filtered.subList(fromIndex, Math.min(fromIndex + PAGE_SIZE, filteredCount));
-        List<PageItem> pageItems = new ArrayList<>();
-        for (int i = 1; i <= totalPages; i++) pageItems.add(new PageItem(i, i == page));
-        String filterQuery = "searchCert=" + searchCert + "&filterPassed=" + filterPassed
-                + "&filterDifficulty=" + filterDifficulty + "&certSearch=" + certSearch + "&certPage=" + certPage;
-
-        // ── 7. 모델에 등록 ─────────────────────────────────
+        // ── 5. 모델에 등록 (필터링·페이지네이션은 JS 처리) ──
         model.addAttribute("total", total);
         model.addAttribute("certCount", uniqueCerts.size());
         model.addAttribute("passedCount", passedCount);
         model.addAttribute("passRate", passRateNum + "%");
         model.addAttribute("top5RankList", top5RankList);
         model.addAttribute("recentPassedList", recentPassedList);
-        model.addAttribute("pagedCertList", pagedCertList);
-        model.addAttribute("certSearch", certSearch);
-        model.addAttribute("certFilteredCount", filteredCerts.size());
-        model.addAttribute("certPageItems", certPageItems);
-        model.addAttribute("certHasPrev", certPage > 1);
-        model.addAttribute("certHasNext", certPage < certTotalPages);
-        model.addAttribute("certPrevPage", certPage - 1);
-        model.addAttribute("certNextPage", certPage + 1);
-        model.addAttribute("certFilterQuery", certFilterQuery);
-        model.addAttribute("reviewList", pagedList);
-        model.addAttribute("filteredCount", filteredCount);
-        model.addAttribute("searchCert", searchCert);
-        model.addAttribute("filterPassed", filterPassed);
-        model.addAttribute("filterDifficulty", filterDifficulty);
-        model.addAttribute("filterPassedY", "Y".equals(filterPassed));
-        model.addAttribute("filterPassedN", "N".equals(filterPassed));
-        model.addAttribute("filterDiffLow",  "하".equals(filterDifficulty));
-        model.addAttribute("filterDiffMid",  "중".equals(filterDifficulty));
-        model.addAttribute("filterDiffHigh", "상".equals(filterDifficulty));
-        model.addAttribute("currentPage", page);
-        model.addAttribute("hasPrev", page > 1);
-        model.addAttribute("hasNext", page < totalPages);
-        model.addAttribute("prevPage", page - 1);
-        model.addAttribute("nextPage", page + 1);
-        model.addAttribute("pageItems", pageItems);
-        model.addAttribute("filterQuery", filterQuery);
+        model.addAttribute("certSummaryList", certSummaryList);
+        model.addAttribute("reviewList", allReviews);
 
         return "reviews/index";
     }

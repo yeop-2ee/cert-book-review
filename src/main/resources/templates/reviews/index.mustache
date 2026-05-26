@@ -41,8 +41,7 @@
                 <div class="card-header">합격자 기준 교재 TOP 5</div>
                 <div style="padding:0.6rem 1rem 0;">
                     <input type="text" id="top5Search" class="form-control form-control-sm"
-                           placeholder="자격증 검색" oninput="filterTop5(this.value)"
-                           autocomplete="off">
+                           placeholder="자격증 검색" oninput="filterTop5(this.value)" autocomplete="off">
                 </div>
                 <table class="table mb-0">
                     <thead>
@@ -98,20 +97,12 @@
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <span>자격증별 요약</span>
-            <span class="result-count" style="padding:0; border:none; font-size:0.77rem;">총 {{certFilteredCount}}개</span>
+            <span id="certSummaryCount" class="result-count" style="padding:0; border:none; font-size:0.77rem;">총 {{certCount}}개</span>
         </div>
         <div style="padding:0.7rem 1.25rem; background:#f8fafc; border-bottom:1px solid #e5e7eb;">
-            <form id="certSearchForm" method="get" action="/reviews">
-                <input type="hidden" name="searchCert" value="{{searchCert}}">
-                <input type="hidden" name="filterPassed" value="{{filterPassed}}">
-                <input type="hidden" name="filterDifficulty" value="{{filterDifficulty}}">
-                <input type="hidden" name="page" value="{{currentPage}}">
-                <input type="text" class="form-control form-control-sm" name="certSearch"
-                       id="certSearchInput" value="{{certSearch}}"
-                       placeholder="자격증 검색" autocomplete="off">
-            </form>
+            <input type="text" id="certSummarySearch" class="form-control form-control-sm"
+                   placeholder="자격증 검색" autocomplete="off" oninput="filterCertSummary(this.value)">
         </div>
-
         <table class="table mb-0">
             <thead>
                 <tr>
@@ -123,9 +114,9 @@
                     <th class="text-center" style="width:110px;">바로가기</th>
                 </tr>
             </thead>
-            <tbody>
-                {{#pagedCertList}}
-                <tr>
+            <tbody id="certSummaryBody">
+                {{#certSummaryList}}
+                <tr data-cert="{{certName}}">
                     <td class="fw-semibold" style="white-space:nowrap;">{{certName}}</td>
                     <td class="text-center" style="color:#94a3b8;">{{totalCount}}</td>
                     <td>
@@ -147,30 +138,12 @@
                         <a href="/reviews/ranking?certName={{certName}}" class="btn btn-sm" style="background:#f0fdf4; border:1px solid #bbf7d0; color:#16a34a; font-size:0.75rem;">교재 추천</a>
                     </td>
                 </tr>
-                {{/pagedCertList}}
+                {{/certSummaryList}}
             </tbody>
         </table>
-
-        <div class="d-flex justify-content-center py-2">
-            <nav>
-                <ul class="pagination pagination-sm mb-0">
-                    {{#certHasPrev}}
-                    <li class="page-item">
-                        <a class="page-link" href="/reviews?certPage={{certPrevPage}}&{{{certFilterQuery}}}">이전</a>
-                    </li>
-                    {{/certHasPrev}}
-                    {{#certPageItems}}
-                    <li class="page-item {{#active}}active{{/active}}">
-                        <a class="page-link" href="/reviews?certPage={{pageNum}}&{{{certFilterQuery}}}">{{pageNum}}</a>
-                    </li>
-                    {{/certPageItems}}
-                    {{#certHasNext}}
-                    <li class="page-item">
-                        <a class="page-link" href="/reviews?certPage={{certNextPage}}&{{{certFilterQuery}}}">다음</a>
-                    </li>
-                    {{/certHasNext}}
-                </ul>
-            </nav>
+        <div class="d-flex flex-column align-items-center gap-1 py-2">
+            <nav><ul id="certPagination" class="pagination pagination-sm mb-0"></ul></nav>
+            <div id="certPageInfo" class="page-info-text"></div>
         </div>
     </div>
 
@@ -180,39 +153,33 @@
             <span>전체 리뷰 목록</span>
             <a href="/reviews/new" class="btn btn-primary btn-sm">리뷰 작성</a>
         </div>
-
-        <!-- 검색 / 필터 -->
         <div class="filter-bar">
-            <form id="reviewFilterForm" method="get" action="/reviews" class="row g-2 align-items-end">
-                <input type="hidden" name="certSearch" value="{{certSearch}}">
-                <input type="hidden" name="certPage" value="1">
+            <div class="row g-2 align-items-end">
                 <div class="col-md-4">
                     <div class="section-label mb-1">자격증 / 교재명</div>
-                    <input type="text" id="searchCertInput" class="form-control form-control-sm"
-                           name="searchCert" value="{{searchCert}}" placeholder="검색어 입력">
+                    <input type="text" id="reviewSearch" class="form-control form-control-sm"
+                           placeholder="검색어 입력" oninput="filterReviews()">
                 </div>
                 <div class="col-md-3">
                     <div class="section-label mb-1">합격 여부</div>
-                    <select id="filterPassedSelect" class="form-select form-select-sm" name="filterPassed">
+                    <select id="reviewPassed" class="form-select form-select-sm" onchange="filterReviews()">
                         <option value="all">전체</option>
-                        <option value="Y" {{#filterPassedY}}selected{{/filterPassedY}}>합격</option>
-                        <option value="N" {{#filterPassedN}}selected{{/filterPassedN}}>불합격</option>
+                        <option value="Y">합격</option>
+                        <option value="N">불합격</option>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <div class="section-label mb-1">난이도</div>
-                    <select id="filterDiffSelect" class="form-select form-select-sm" name="filterDifficulty">
+                    <select id="reviewDiff" class="form-select form-select-sm" onchange="filterReviews()">
                         <option value="all">전체</option>
-                        <option value="하" {{#filterDiffLow}}selected{{/filterDiffLow}}>하</option>
-                        <option value="중" {{#filterDiffMid}}selected{{/filterDiffMid}}>중</option>
-                        <option value="상" {{#filterDiffHigh}}selected{{/filterDiffHigh}}>상</option>
+                        <option value="하">하</option>
+                        <option value="중">중</option>
+                        <option value="상">상</option>
                     </select>
                 </div>
-            </form>
+            </div>
         </div>
-
-        <div class="result-count">총 {{filteredCount}}건</div>
-
+        <div id="reviewCount" class="result-count">총 {{total}}건</div>
         <table class="table mb-0">
             <thead>
                 <tr>
@@ -224,9 +191,11 @@
                     <th style="width:100px;">공부기간</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="reviewBody">
                 {{#reviewList}}
-                <tr onclick="location.href='/reviews/{{id}}'" style="cursor:pointer;">
+                <tr data-cert="{{certName}}" data-book="{{bookTitle}}"
+                    data-passed="{{passed}}" data-diff="{{difficulty}}"
+                    onclick="location.href='/reviews/{{id}}'" style="cursor:pointer;">
                     <td style="color:#cbd5e1;">{{id}}</td>
                     <td>{{certName}}</td>
                     <td style="color:#64748b;">{{bookTitle}}</td>
@@ -244,63 +213,139 @@
                 {{/reviewList}}
             </tbody>
         </table>
-
-        <div class="d-flex justify-content-center py-3">
-            <nav>
-                <ul class="pagination pagination-sm mb-0">
-                    {{#hasPrev}}
-                    <li class="page-item">
-                        <a class="page-link" href="/reviews?page={{prevPage}}&{{{filterQuery}}}">이전</a>
-                    </li>
-                    {{/hasPrev}}
-                    {{#pageItems}}
-                    <li class="page-item {{#active}}active{{/active}}">
-                        <a class="page-link" href="/reviews?page={{pageNum}}&{{{filterQuery}}}">{{pageNum}}</a>
-                    </li>
-                    {{/pageItems}}
-                    {{#hasNext}}
-                    <li class="page-item">
-                        <a class="page-link" href="/reviews?page={{nextPage}}&{{{filterQuery}}}">다음</a>
-                    </li>
-                    {{/hasNext}}
-                </ul>
-            </nav>
+        <div class="d-flex flex-column align-items-center gap-1 py-3">
+            <nav><ul id="reviewPagination" class="pagination pagination-sm mb-0"></ul></nav>
+            <div id="reviewPageInfo" class="page-info-text"></div>
         </div>
     </div>
 
 </div>
 
 <script>
-// 자격증별 요약 검색 — 타이핑 후 300ms 자동 submit
-(function() {
-    var input = document.getElementById("certSearchInput");
-    var form  = document.getElementById("certSearchForm");
-    if (!input) return;
-    var timer;
-    input.addEventListener("input", function() {
-        clearTimeout(timer);
-        timer = setTimeout(function() { form.submit(); }, 300);
-    });
-})();
+var CERT_PAGE_SIZE = 5;
+var REVIEW_PAGE_SIZE = 10;
 
-// 전체 리뷰 필터 — 텍스트 300ms debounce, select 즉시 submit
-(function() {
-    var form   = document.getElementById("reviewFilterForm");
-    var textInput = document.getElementById("searchCertInput");
-    var selects   = [document.getElementById("filterPassedSelect"),
-                     document.getElementById("filterDiffSelect")];
-    if (!form) return;
-    var timer;
-    textInput.addEventListener("input", function() {
-        clearTimeout(timer);
-        timer = setTimeout(function() { form.submit(); }, 300);
-    });
-    selects.forEach(function(sel) {
-        sel.addEventListener("change", function() { form.submit(); });
-    });
-})();
+// ── 자격증별 요약 ──────────────────────────────────────
+var certRows = Array.from(document.querySelectorAll("#certSummaryBody tr"));
+var certCurrentPage = 1;
+var certFiltered = certRows.slice();
 
-// TOP5 자격증 검색 — 즉시 JS 필터
+function filterCertSummary(query) {
+    var keyword = query.trim().toLowerCase();
+    certFiltered = certRows.filter(function(row) {
+        return keyword === "" || (row.getAttribute("data-cert") || "").toLowerCase().includes(keyword);
+    });
+    certCurrentPage = 1;
+    renderCertPage();
+}
+
+function renderCertPage() {
+    var total = certFiltered.length;
+    var totalPages = Math.max(1, Math.ceil(total / CERT_PAGE_SIZE));
+    if (certCurrentPage > totalPages) certCurrentPage = totalPages;
+    var start = (certCurrentPage - 1) * CERT_PAGE_SIZE;
+
+    certRows.forEach(function(r) { r.style.display = "none"; });
+    certFiltered.slice(start, start + CERT_PAGE_SIZE).forEach(function(r) { r.style.display = ""; });
+
+    document.getElementById("certSummaryCount").textContent = "총 " + total + "개";
+    renderPagination("certPagination", "certPageInfo", certCurrentPage, totalPages, function(p) {
+        certCurrentPage = p; renderCertPage();
+    });
+}
+
+// ── 전체 리뷰 목록 ────────────────────────────────────
+var reviewRows = Array.from(document.querySelectorAll("#reviewBody tr"));
+var reviewCurrentPage = 1;
+var reviewFiltered = reviewRows.slice();
+
+function filterReviews() {
+    var keyword = document.getElementById("reviewSearch").value.trim().toLowerCase();
+    var passed  = document.getElementById("reviewPassed").value;
+    var diff    = document.getElementById("reviewDiff").value;
+    reviewFiltered = reviewRows.filter(function(row) {
+        var cert    = (row.getAttribute("data-cert") || "").toLowerCase();
+        var book    = (row.getAttribute("data-book") || "").toLowerCase();
+        var rPassed = row.getAttribute("data-passed") || "";
+        var rDiff   = row.getAttribute("data-diff") || "";
+        return (keyword === "" || cert.includes(keyword) || book.includes(keyword))
+            && (passed === "all" || passed === rPassed)
+            && (diff   === "all" || diff   === rDiff);
+    });
+    reviewCurrentPage = 1;
+    renderReviewPage();
+}
+
+function renderReviewPage() {
+    var total = reviewFiltered.length;
+    var totalPages = Math.max(1, Math.ceil(total / REVIEW_PAGE_SIZE));
+    if (reviewCurrentPage > totalPages) reviewCurrentPage = totalPages;
+    var start = (reviewCurrentPage - 1) * REVIEW_PAGE_SIZE;
+
+    reviewRows.forEach(function(r) { r.style.display = "none"; });
+    reviewFiltered.slice(start, start + REVIEW_PAGE_SIZE).forEach(function(r) { r.style.display = ""; });
+
+    document.getElementById("reviewCount").textContent = "총 " + total + "건";
+    renderPagination("reviewPagination", "reviewPageInfo", reviewCurrentPage, totalPages, function(p) {
+        reviewCurrentPage = p; renderReviewPage();
+    });
+}
+
+// ── 공통 페이지네이션 렌더러 ─────────────────────────
+function renderPagination(containerId, infoId, current, totalPages, goPage) {
+    var ul = document.getElementById(containerId);
+    var infoEl = document.getElementById(infoId);
+    ul.innerHTML = "";
+    if (infoEl) infoEl.textContent = "";
+    if (totalPages <= 1) return;
+
+    function makeBtn(label, page, active, disabled, isEllipsis) {
+        var li = document.createElement("li");
+        li.className = "page-item" + (active ? " active" : "") + (disabled ? " disabled" : "");
+        var a = document.createElement("a");
+        a.className = "page-link";
+        a.href = "#";
+        a.innerHTML = label;
+        if (isEllipsis) {
+            a.style.cssText = "pointer-events:none; color:#cbd5e1; border:none; background:transparent; padding:0.32rem 0.3rem;";
+        }
+        a.addEventListener("click", function(e) {
+            e.preventDefault();
+            if (!disabled && !isEllipsis) goPage(page);
+        });
+        li.appendChild(a);
+        ul.appendChild(li);
+    }
+
+    // « 첫 페이지 / ‹ 이전
+    makeBtn("&laquo;", 1,           false, current === 1, false);
+    makeBtn("&lsaquo;", current - 1, false, current === 1, false);
+
+    // 윈도우: 현재 ±2, 항상 첫·끝 포함
+    var delta = 2;
+    var pages = [];
+    for (var i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= current - delta && i <= current + delta)) {
+            pages.push(i);
+        }
+    }
+    var prev = 0;
+    for (var j = 0; j < pages.length; j++) {
+        var p = pages[j];
+        if (prev && p - prev > 1) makeBtn("…", 0, false, false, true);
+        makeBtn(p, p, p === current, false, false);
+        prev = p;
+    }
+
+    // › 다음 / » 끝 페이지
+    makeBtn("&rsaquo;", current + 1,  false, current === totalPages, false);
+    makeBtn("&raquo;",  totalPages,   false, current === totalPages, false);
+
+    // 페이지 위치 텍스트
+    if (infoEl) infoEl.textContent = current + " / " + totalPages + " 페이지";
+}
+
+// ── TOP5 필터 ─────────────────────────────────────────
 function filterTop5(query) {
     var keyword = query.trim().toLowerCase();
     document.querySelectorAll("#top5Body tr").forEach(function(row) {
@@ -308,6 +353,10 @@ function filterTop5(query) {
         row.style.display = (keyword === "" || cert.includes(keyword)) ? "" : "none";
     });
 }
+
+// 초기 렌더링
+renderCertPage();
+renderReviewPage();
 </script>
 
 {{>layouts/footer}}
