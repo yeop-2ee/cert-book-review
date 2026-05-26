@@ -45,6 +45,31 @@
         </div>
     </div>
 
+    {{#hasCertName}}
+    {{#hasData}}
+    <!-- AI 합격 팁 (자격증 선택 시 자동 생성) -->
+    <div class="card mb-4" id="aiTipsCard" data-cert="{{certName}}">
+        <div class="card-header d-flex align-items-center" style="gap:0.4rem;">
+            <span style="color:#6366f1;">✦</span>
+            <span>AI 합격 팁</span>
+            <span id="aiTipsStatus" class="ms-auto badge badge-indigo" style="font-size:0.7rem; display:none;">분석 완료</span>
+        </div>
+        <div style="padding:1rem 1.25rem;">
+            <div id="aiTipsLoading" style="text-align:center; padding:0.8rem 0; font-size:0.84rem; color:#6366f1;">
+                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                AI가 합격 팁을 분석 중입니다... (시간이 걸릴 수 있습니다)
+            </div>
+            <div id="aiTipsResult" style="display:none;">
+                <div style="background:#f5f3ff; border:1px solid #e0e7ff; border-radius:10px; padding:1rem 1.15rem;">
+                    <div style="font-size:0.7rem; font-weight:700; color:#6366f1; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:0.7rem;">AI 분석 결과</div>
+                    <div id="aiTipsText" style="font-size:0.875rem; color:#374151; line-height:1.85; white-space:pre-wrap;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/hasData}}
+    {{/hasCertName}}
+
     {{#hasData}}
     <!-- 차트 2개 -->
     <div class="row g-3 mb-4">
@@ -213,6 +238,30 @@
         }
     });
     {{/hasData}}
+
+    // AI 합격 팁 자동 생성 (자격증 선택 시)
+    var aiCard = document.getElementById('aiTipsCard');
+    if (aiCard) {
+        var certName = aiCard.getAttribute('data-cert');
+        var loading = document.getElementById('aiTipsLoading');
+        var result  = document.getElementById('aiTipsResult');
+        var text    = document.getElementById('aiTipsText');
+        var status  = document.getElementById('aiTipsStatus');
+
+        fetch('/reviews/ai/tips?certName=' + encodeURIComponent(certName))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                loading.style.display = 'none';
+                result.style.display  = 'block';
+                text.textContent = data.result || (data.error || '결과를 가져오지 못했습니다.');
+                if (status) { status.style.display = 'inline-block'; }
+            })
+            .catch(function() {
+                loading.style.display = 'none';
+                result.style.display  = 'block';
+                text.textContent = 'Ollama 연결에 실패했습니다. Ollama가 실행 중인지 확인해주세요.';
+            });
+    }
 </script>
 
 {{>layouts/footer}}

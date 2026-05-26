@@ -1,5 +1,6 @@
 package com.yeop_2ee.cert_book_review.controller;
 
+import com.yeop_2ee.cert_book_review.client.OllamaClient;
 import com.yeop_2ee.cert_book_review.dto.BookDetail;
 import com.yeop_2ee.cert_book_review.dto.BookRank;
 import com.yeop_2ee.cert_book_review.dto.CertRanking;
@@ -23,6 +24,9 @@ public class ReviewController {
 
     @Autowired
     private ReviewRepository reviewRepository;
+
+    @Autowired
+    private OllamaClient ollamaClient;
 
     private static final int PAGE_SIZE = 10; // 한 페이지당 리뷰 수
 
@@ -228,6 +232,7 @@ public class ReviewController {
         }
 
         model.addAttribute("certName", certName);
+        model.addAttribute("hasCertName", !certName.isEmpty());
         model.addAttribute("certNames", certNames);
         model.addAttribute("totalReviews", filtered.size());
         model.addAttribute("totalReviewsFmt", String.format("%,d", filtered.size()));
@@ -312,5 +317,137 @@ public class ReviewController {
 
         model.addAttribute("certRankingList", certRankingList);
         return "reviews/ranking";
+    }
+
+    // ── AI: 교재 추천 이유 ───────────────────────────────
+    @GetMapping("/reviews/ai/recommend-reason")
+    @ResponseBody
+    public Map<String, String> aiRecommendReason(@RequestParam String certName,
+                                                  @RequestParam String bookTitle) {
+        ArrayList<Review> all = reviewRepository.findAll();
+        int total = 0, passed = 0, periodSum = 0, periodCount = 0;
+        for (Review r : all) {
+            if (certName.equals(r.getCertName()) && bookTitle.equals(r.getBookTitle())) {
+                total++;
+                if ("Y".equals(r.getPassed())) passed++;
+                int m = parseMonths(r.getStudyPeriod());
+                if (m > 0) { periodSum += m; periodCount++; }
+            }
+        }
+        int passRate = total > 0 ? passed * 100 / total : 0;
+        String avgPeriod = periodCount > 0 ? (periodSum / periodCount) + "개월" : "정보 없음";
+
+        String prompt = "당신은 자격증 시험 전문 조언가입니다. 다음 데이터를 바탕으로 이 교재를 추천하는 이유를 한국어로 3~4문장으로 간결하게 작성해주세요.\n\n"
+                + "자격증: " + certName + "\n"
+                + "교재명: " + bookTitle + "\n"
+                + "총 리뷰 수: " + total + "개\n"
+                + "합격자 수: " + passed + "명\n"
+                + "합격률: " + passRate + "%\n"
+                + "평균 공부 기간: " + avgPeriod + "\n\n"
+                + "마크다운 기호 없이 일반 텍스트로만 작성해주세요.";
+
+        return buildAiResponse(ollamaClient.generate(prompt));
+    }
+
+    // ── AI: 리뷰 요약 ────────────────────────────────────
+    @GetMapping("/reviews/ai/book-summary")
+    @ResponseBody
+    public Map<String, String> aiBookSummary(@RequestParam String certName,
+                                              @RequestParam String bookTitle) {
+        ArrayList<Review> all = reviewRepository.findAll();
+        List<String> contents = new ArrayList<>();
+        for (Review r : all) {
+            if (certName.equals(r.getCertName()) && bookTitle.equals(r.getBookTitle())
+                    && r.getContent() != null && !r.getContent().isBlank()) {
+                contents.add("- " + r.getContent().trim());
+            }
+        }
+        if (contents.isEmpty()) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "작성된 리뷰 내용이 없습니다.");
+            return err;
+        }
+        List<String> limited = contents.size() > 10 ? contents.subList(0, 10) : contents;
+        String prompt = "당신은 자격증 시험 전문 조언가입니다. 다음은 \"" + bookTitle + "\" 교재에 대한 수험생들의 리뷰입니다. "
+                + "이 리뷰들을 종합하여 교재의 특징과 장단점을 한국어로 3~4문장으로 요약해주세요.\n\n"
+                + "리뷰 내용:\n" + String.join("\n", limited) + "\n\n"
+                + "마크다운 기호 없이 일반 텍스트로만 작성해주세요.";
+
+        return buildAiResponse(ollamaClient.generate(prompt));
+    }
+
+    // ── AI: 합격 팁 ──────────────────────────────────────
+    @GetMapping("/reviews/ai/tips")
+    @ResponseBody
+    public Map<String, String> aiTips(@RequestParam(defaultValue = "") String certName) {
+        ArrayList<Review> all = reviewRepository.findAll();
+        List<Review> filtered = new ArrayList<>();
+        for (Review r : all) {
+            if (certName.isEmpty() || certName.equals(r.getCertName())) filtered.add(r);
+        }
+        if (filtered.isEmpty()) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "데이터가 없습니다.");
+            return err;
+        }
+        int total = filtered.size(), passed = 0, dLow = 0, dMid = 0, dHigh = 0;
+        int[] pCount = {0, 0, 0, 0}, pPassed = {0, 0, 0, 0};
+        for (Review r : filtered) {
+            if ("Y".equals(r.getPassed())) passed++;
+            if ("하".equals(r.getDifficulty())) dLow++;
+            else if ("중".equals(r.getDifficulty())) dMid++;
+            else if ("상".equals(r.getDifficulty())) dHigh++;
+            int m = parseMonths(r.getStudyPeriod());
+            int g = m < 1 ? 0 : m <= 3 ? 1 : m <= 6 ? 2 : 3;
+            pCount[g]++;
+            if ("Y".equals(r.getPassed())) pPassed[g]++;
+        }
+        int passRate = total > 0 ? passed * 100 / total : 0;
+        String target = certName.isEmpty() ? "이 자격증" : "\"" + certName + "\"";
+        String prompt = "당신은 자격증 시험 전문 조언가입니다. 다음 통계 데이터를 바탕으로 " + target
+                + " 합격을 위한 구체적인 공부 팁을 한국어로 3~5가지 번호 항목으로 작성해주세요.\n\n"
+                + "총 리뷰 수: " + total + "개\n"
+                + "전체 합격률: " + passRate + "%\n"
+                + "체감 난이도: 하(" + dLow + "명) 중(" + dMid + "명) 상(" + dHigh + "명)\n"
+                + "공부 기간별 합격률:\n"
+                + "- 1개월 미만: " + (pCount[0] > 0 ? pPassed[0] * 100 / pCount[0] : 0) + "% (" + pCount[0] + "명)\n"
+                + "- 1~3개월: " + (pCount[1] > 0 ? pPassed[1] * 100 / pCount[1] : 0) + "% (" + pCount[1] + "명)\n"
+                + "- 3~6개월: " + (pCount[2] > 0 ? pPassed[2] * 100 / pCount[2] : 0) + "% (" + pCount[2] + "명)\n"
+                + "- 6개월 이상: " + (pCount[3] > 0 ? pPassed[3] * 100 / pCount[3] : 0) + "% (" + pCount[3] + "명)\n\n"
+                + "마크다운 기호 없이 번호 목록 형식의 일반 텍스트로만 작성해주세요.";
+
+        return buildAiResponse(ollamaClient.generate(prompt));
+    }
+
+    // ── AI: 자격증 전체 리뷰 요약 ───────────────────────
+    @GetMapping("/reviews/ai/cert-summary")
+    @ResponseBody
+    public Map<String, String> aiCertSummary(@RequestParam String certName) {
+        ArrayList<Review> all = reviewRepository.findAll();
+        List<String> contents = new ArrayList<>();
+        for (Review r : all) {
+            if (certName.equals(r.getCertName()) && r.getContent() != null && !r.getContent().isBlank()) {
+                String tag = "Y".equals(r.getPassed()) ? "합격" : "불합격";
+                contents.add("- [" + tag + "/" + r.getDifficulty() + "] " + r.getContent().trim());
+            }
+        }
+        if (contents.isEmpty()) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "작성된 리뷰 내용이 없습니다.");
+            return err;
+        }
+        List<String> limited = contents.size() > 15 ? contents.subList(0, 15) : contents;
+        String prompt = "당신은 자격증 시험 전문 조언가입니다. 다음은 \"" + certName + "\" 자격증에 대한 수험생들의 실제 리뷰입니다. "
+                + "이 리뷰들을 종합하여 이 자격증 시험의 특징, 난이도, 수험 경향을 한국어로 3~4문장으로 요약해주세요.\n\n"
+                + "리뷰 내용:\n" + String.join("\n", limited) + "\n\n"
+                + "마크다운 기호 없이 일반 텍스트로만 작성해주세요.";
+        return buildAiResponse(ollamaClient.generate(prompt));
+    }
+
+    private Map<String, String> buildAiResponse(String result) {
+        Map<String, String> map = new HashMap<>();
+        if (result != null) map.put("result", result);
+        else map.put("error", "AI 응답을 가져오지 못했습니다. Ollama가 실행 중인지 확인해주세요.");
+        return map;
     }
 }

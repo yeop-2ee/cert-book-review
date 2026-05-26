@@ -26,7 +26,10 @@
     <div class="cert-card card mb-3" data-cert="{{certName}}">
         <div class="card-header d-flex align-items-center justify-content-between">
             <span>{{certName}}</span>
-            <span class="badge badge-indigo">합격자 교재 순위</span>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-soft btn-sm cert-ai-btn" style="font-size:0.74rem; padding:0.18rem 0.6rem; white-space:nowrap; color:#6366f1; border-color:#c7d2fe;">AI 분석</button>
+                <span class="badge badge-indigo">합격자 교재 순위</span>
+            </div>
         </div>
         <table class="table mb-0">
             <thead>
@@ -41,7 +44,7 @@
             </thead>
             <tbody>
                 {{#books}}
-                <tr>
+                <tr data-book="{{bookTitle}}" data-rank="{{rank}}">
                     <td class="text-center fw-bold" style="color:#6366f1;">{{rank}}</td>
                     <td style="font-size:0.85rem;">
                         {{bookTitle}} {{#top}}<span class="badge badge-indigo me-1" style="font-size:0.68rem; vertical-align:middle;">★ 추천</span>{{/top}}</td>
@@ -60,6 +63,14 @@
                 {{/books}}
             </tbody>
         </table>
+
+        <!-- AI 분석 패널 (자격증별) -->
+        <div class="cert-ai-panel" style="display:none; border-top:1px solid #e5e7eb; padding:1rem 1.25rem 1.1rem;">
+            <div class="cert-ai-loading" style="display:none; text-align:center; padding:0.8rem 0; font-size:0.84rem; color:#6366f1;">
+                <span class="spinner-border spinner-border-sm me-1" role="status"></span>AI 분석 중... (시간이 걸릴 수 있습니다)
+            </div>
+            <div class="cert-ai-result"></div>
+        </div>
     </div>
     {{/certRankingList}}
 
@@ -81,6 +92,84 @@
 </div>
 
 <script>
+    function escAi(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // 자격증별 AI 분석 버튼
+    document.querySelectorAll('.cert-ai-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var certCard = btn.closest('.cert-card');
+            var certName = certCard.getAttribute('data-cert');
+            var panel   = certCard.querySelector('.cert-ai-panel');
+            var loading = certCard.querySelector('.cert-ai-loading');
+            var result  = certCard.querySelector('.cert-ai-result');
+
+            // 토글
+            if (panel.style.display !== 'none') {
+                panel.style.display = 'none';
+                btn.textContent = 'AI 분석';
+                return;
+            }
+            panel.style.display = 'block';
+            btn.textContent = '닫기';
+
+            if (result.dataset.loaded) return; // 이미 로드됨
+
+            // 1위 교재명 추출
+            var topRow = certCard.querySelector('tr[data-rank="1"]');
+            var topBook = topRow ? topRow.getAttribute('data-book') : '';
+
+            loading.style.display = 'block';
+
+            var promises = [];
+            if (topBook) {
+                promises.push(
+                    fetch('/reviews/ai/recommend-reason?certName=' + encodeURIComponent(certName)
+                          + '&bookTitle=' + encodeURIComponent(topBook))
+                        .then(function(r) { return r.json(); })
+                        .catch(function() { return {}; })
+                );
+            }
+            promises.push(
+                fetch('/reviews/ai/cert-summary?certName=' + encodeURIComponent(certName))
+                    .then(function(r) { return r.json(); })
+                    .catch(function() { return {}; })
+            );
+
+            Promise.all(promises).then(function(responses) {
+                loading.style.display = 'none';
+                var idx = 0;
+                var html = '';
+
+                if (topBook) {
+                    var reason = responses[idx++];
+                    if (reason && reason.result) {
+                        html += '<div style="margin-bottom:0.85rem;">'
+                              + '<div class="section-label mb-2" style="color:#6366f1;">✦ 1위 교재 추천 이유'
+                              + ' <span style="font-weight:400; color:#94a3b8; text-transform:none; font-size:0.75rem; letter-spacing:0;">· ' + escAi(topBook) + '</span>'
+                              + '</div>'
+                              + '<div style="background:#f5f3ff; border:1px solid #e0e7ff; border-radius:9px; padding:0.85rem 1rem; font-size:0.855rem; color:#374151; line-height:1.8; white-space:pre-wrap;">'
+                              + escAi(reason.result)
+                              + '</div></div>';
+                    }
+                }
+
+                var summary = responses[idx];
+                if (summary && summary.result) {
+                    html += '<div>'
+                          + '<div class="section-label mb-2" style="color:#15803d;">✦ 전체 리뷰 요약</div>'
+                          + '<div style="background:#f0fdf4; border:1px solid #dcfce7; border-radius:9px; padding:0.85rem 1rem; font-size:0.855rem; color:#374151; line-height:1.8; white-space:pre-wrap;">'
+                          + escAi(summary.result)
+                          + '</div></div>';
+                }
+
+                result.dataset.loaded = '1';
+                result.innerHTML = html || '<span style="color:#94a3b8; font-size:0.84rem;">분석 결과를 가져오지 못했습니다.</span>';
+            });
+        });
+    });
+
     var cards = document.querySelectorAll(".cert-card");
     var filterWrap = document.getElementById("certFilterWrap");
     var matchCount = document.getElementById("certMatchCount");
@@ -90,7 +179,6 @@
         filterWrap.style.display = "block";
         matchCount.textContent = "총 " + cards.length.toLocaleString("ko-KR") + "개 자격증";
 
-        // 카드에서 자격증 이름 읽어 datalist 자동 생성
         var datalist = document.getElementById("certSearchList");
         cards.forEach(function(card) {
             var option = document.createElement("option");
