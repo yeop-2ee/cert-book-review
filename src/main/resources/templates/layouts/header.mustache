@@ -46,6 +46,13 @@
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             background: #ffffff;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .card.is-visible {
+            opacity: 1;
+            transform: translateY(0);
         }
         .card-header {
             background: #ffffff;
@@ -70,6 +77,13 @@
             border-radius: 12px;
             padding: 1.4rem 1.2rem 1.2rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .stat-card.is-visible {
+            opacity: 1;
+            transform: translateY(0);
         }
         .stat-card .stat-line {
             height: 3px;
@@ -147,10 +161,10 @@
             background: #fffbeb;
             color: #d97706;
         }
-        /* 난이도 전용 배지 (통계 차트 색상과 동일) */
-        .badge-diff-low  { background: #bbf7d0; color: #166534; }
-        .badge-diff-mid  { background: #bfdbfe; color: #1e40af; }
-        .badge-diff-high { background: #fecaca; color: #991b1b; }
+        /* 난이도 전용 배지 */
+        .badge-diff-low  { background: #f0fdf4; color: #15803d; }
+        .badge-diff-mid  { background: #eff6ff; color: #2563eb; }
+        .badge-diff-high { background: #fff1f2; color: #e11d48; }
 
         /* ── 버튼 ── */
         .btn-primary {
