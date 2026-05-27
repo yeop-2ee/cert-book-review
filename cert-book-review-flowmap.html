@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>cert-book-review — 화면 Flow Map</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #ebebeb; font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; }
+
+    .canvas { padding: 60px; min-width: 1800px; }
+
+    .flowmap-title { margin-bottom: 52px; }
+    .flowmap-title h1 { font-size: 22px; font-weight: 800; color: #1a1a1a; margin-bottom: 6px; }
+    .flowmap-title p { font-size: 12px; color: #999; font-weight: 500; letter-spacing: 0.3px; }
+
+    .flow-row { display: flex; align-items: flex-start; margin-bottom: 72px; }
+    .row-label-col { width: 88px; padding-top: 46px; flex-shrink: 0; }
+    .row-label-col span { writing-mode: vertical-rl; font-size: 10px; font-weight: 700; color: #aaa; letter-spacing: 2px; text-transform: uppercase; }
+    .screens-row { display: flex; align-items: center; }
+
+    .artboard { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .artboard-name { font-size: 11px; font-weight: 700; color: #444; text-align: center; }
+    .artboard-route { font-size: 10px; color: #aaa; text-align: center; font-family: 'Menlo','Monaco',monospace; margin-top: 2px; }
+
+    /* Screen wrapper — 320×220 rendered at 960px scale(0.3333) */
+    .sw { width: 320px; height: 220px; overflow: hidden; border-radius: 10px; position: relative;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.14), 0 2px 6px rgba(0,0,0,0.07); background: #f8f9fc; }
+    .si { width: 960px; transform: scale(0.3333); transform-origin: top left; position: absolute; top: 0; left: 0; }
+
+    .connector { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 10px; padding-top: 28px; gap: 4px; }
+    .connector-label { font-size: 9px; color: #ccc; white-space: nowrap; }
+  </style>
+</head>
+<body>
+<div class="canvas">
+
+  <div class="flowmap-title">
+    <h1>cert-book-review — 화면 설계 Flow Map</h1>
+    <p>Spring Boot 3.5 · Mustache · H2 · Ollama · 자격증 교재 리뷰 &amp; 랭킹 플랫폼</p>
+  </div>
+
+  <!-- ========================= ROW 1: 메인 플로우 ========================= -->
+  <div class="flow-row">
+    <div class="row-label-col"><span>메인 플로우</span></div>
+    <div class="screens-row">
+
+      <!-- ── Screen 1: 대시보드 ── -->
+      <div class="artboard">
+        <span class="artboard-name">대시보드</span>
+        <div class="sw">
+          <div class="si">
+            <div style="min-height:660px;background:#f8fafc;font-family:-apple-system,'Segoe UI',sans-serif;font-size:14px;color:#374151;">
+              <!-- Navbar -->
+              <nav style="background:#ffffff;border-bottom:1px solid #e5e7eb;height:52px;display:flex;align-items:center;padding:0 20px;">
+                <span style="font-weight:700;font-size:15px;color:#1e293b;letter-spacing:-0.3px;margin-right:20px;">자격증 교재 리뷰</span>
+                <div style="display:flex;align-items:center;gap:2px;">
+                  <a style="color:#6366f1;font-size:13px;padding:5px 10px;border-radius:6px;background:#eef2ff;text-decoration:none;">대시보드</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">리뷰 작성</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">교재 랭킹</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">통계 분석</a>
+                </div>
+              </nav>
+
+              <div style="padding:20px 20px 0;">
+                <!-- 통계 카드 4개 -->
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="width:28px;height:3px;background:#818cf8;border-radius:2px;margin-bottom:10px;"></div>
+                    <div style="font-size:22px;font-weight:700;color:#1e293b;line-height:1.1;">48</div>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:3px;">총 리뷰 수</div>
+                  </div>
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="width:28px;height:3px;background:#34d399;border-radius:2px;margin-bottom:10px;"></div>
+                    <div style="font-size:22px;font-weight:700;color:#1e293b;line-height:1.1;">12</div>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:3px;">등록 자격증 수</div>
+                  </div>
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="width:28px;height:3px;background:#fbbf24;border-radius:2px;margin-bottom:10px;"></div>
+                    <div style="font-size:22px;font-weight:700;color:#1e293b;line-height:1.1;">67%</div>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:3px;">전체 합격률</div>
+                  </div>
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="width:28px;height:3px;background:#f472b6;border-radius:2px;margin-bottom:10px;"></div>
+                    <div style="font-size:22px;font-weight:700;color:#1e293b;line-height:1.1;">32</div>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:3px;">합격자 리뷰 수</div>
+                  </div>
+                </div>
+
+                <!-- TOP5 + 최신 합격 후기 -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+                  <!-- TOP5 -->
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="padding:10px 14px;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:12px;color:#1e293b;">합격자 기준 교재 TOP 5</div>
+                    <div style="padding:6px 12px 4px;">
+                      <div style="height:26px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;display:flex;align-items:center;padding:0 8px;">
+                        <span style="font-size:11px;color:#cbd5e1;">자격증 검색</span>
+                      </div>
+                    </div>
+                    <table style="width:100%;border-collapse:collapse;">
+                      <thead>
+                        <tr style="border-bottom:1px solid #e5e7eb;">
+                          <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 8px;background:#f8fafc;text-align:center;width:36px;">순위</th>
+                          <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 8px;background:#f8fafc;text-align:left;">자격증 / 교재명</th>
+                          <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 8px;background:#f8fafc;text-align:center;width:50px;">합격자</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style="border-bottom:1px solid #f1f5f9;">
+                          <td style="text-align:center;padding:7px 8px;font-weight:700;color:#6366f1;font-size:12px;">1</td>
+                          <td style="padding:7px 8px;">
+                            <div style="font-size:11px;color:#374151;">이기적 정보처리기사 필기</div>
+                            <div style="font-size:10px;color:#94a3b8;">정보처리기사</div>
+                          </td>
+                          <td style="text-align:center;padding:7px 8px;"><span style="background:#eef2ff;color:#6366f1;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;">14</span></td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #f1f5f9;">
+                          <td style="text-align:center;padding:7px 8px;font-weight:700;color:#6366f1;font-size:12px;">2</td>
+                          <td style="padding:7px 8px;">
+                            <div style="font-size:11px;color:#374151;">시나공 컴활 1급 기본서</div>
+                            <div style="font-size:10px;color:#94a3b8;">컴퓨터활용능력 1급</div>
+                          </td>
+                          <td style="text-align:center;padding:7px 8px;"><span style="background:#eef2ff;color:#6366f1;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;">9</span></td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #f1f5f9;">
+                          <td style="text-align:center;padding:7px 8px;font-weight:700;color:#6366f1;font-size:12px;">3</td>
+                          <td style="padding:7px 8px;">
+                            <div style="font-size:11px;color:#374151;">SQL 전문가 가이드</div>
+                            <div style="font-size:10px;color:#94a3b8;">SQLD</div>
+                          </td>
+                          <td style="text-align:center;padding:7px 8px;"><span style="background:#eef2ff;color:#6366f1;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;">7</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div style="padding:8px 14px;border-top:1px solid #e5e7eb;text-align:right;">
+                      <span style="font-size:11px;color:#6366f1;font-weight:500;cursor:pointer;">전체 보기 →</span>
+                    </div>
+                  </div>
+
+                  <!-- 최신 합격 후기 -->
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="padding:10px 14px;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:12px;color:#1e293b;">최신 합격 후기</div>
+                    <div style="display:flex;flex-direction:column;">
+                      <div style="padding:10px 14px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                          <span style="background:#f0fdf4;color:#16a34a;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;margin-right:5px;">합격</span>
+                          <strong style="font-size:12px;">정보처리기사</strong>
+                          <div style="font-size:10px;color:#94a3b8;margin-top:3px;">이기적 필기 · 3개월</div>
+                        </div>
+                        <span style="font-size:11px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;padding:3px 8px;border-radius:6px;cursor:pointer;">보기</span>
+                      </div>
+                      <div style="padding:10px 14px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                          <span style="background:#f0fdf4;color:#16a34a;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;margin-right:5px;">합격</span>
+                          <strong style="font-size:12px;">SQLD</strong>
+                          <div style="font-size:10px;color:#94a3b8;margin-top:3px;">SQL 전문가 가이드 · 1개월</div>
+                        </div>
+                        <span style="font-size:11px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;padding:3px 8px;border-radius:6px;cursor:pointer;">보기</span>
+                      </div>
+                      <div style="padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                          <span style="background:#f0fdf4;color:#16a34a;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;margin-right:5px;">합격</span>
+                          <strong style="font-size:12px;">컴퓨터활용능력 1급</strong>
+                          <div style="font-size:10px;color:#94a3b8;margin-top:3px;">시나공 기본서 · 2개월</div>
+                        </div>
+                        <span style="font-size:11px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;padding:3px 8px;border-radius:6px;cursor:pointer;">보기</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 전체 리뷰 목록 (일부) -->
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                  <div style="padding:10px 14px;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:12px;color:#1e293b;display:flex;justify-content:space-between;align-items:center;">
+                    <span>전체 리뷰 목록</span>
+                    <span style="background:#6366f1;color:#fff;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;">리뷰 작성</span>
+                  </div>
+                  <div style="padding:8px 12px;background:#f8fafc;border-bottom:1px solid #e5e7eb;display:flex;gap:6px;">
+                    <div style="height:26px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;flex:1;display:flex;align-items:center;padding:0 8px;"><span style="font-size:11px;color:#cbd5e1;">검색어 입력</span></div>
+                    <div style="height:26px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;width:80px;display:flex;align-items:center;padding:0 8px;"><span style="font-size:11px;color:#94a3b8;">합격 여부</span></div>
+                    <div style="height:26px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;width:70px;display:flex;align-items:center;padding:0 8px;"><span style="font-size:11px;color:#94a3b8;">난이도</span></div>
+                  </div>
+                  <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                      <tr style="border-bottom:1px solid #e5e7eb;">
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 10px;background:#f8fafc;width:46px;">번호</th>
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 10px;background:#f8fafc;text-align:left;">자격증</th>
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 10px;background:#f8fafc;text-align:left;">교재</th>
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 10px;background:#f8fafc;text-align:center;width:56px;">난이도</th>
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 10px;background:#f8fafc;text-align:center;width:50px;">합격</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style="border-bottom:1px solid #f1f5f9;cursor:pointer;">
+                        <td style="padding:8px 10px;font-size:11px;color:#cbd5e1;">7</td>
+                        <td style="padding:8px 10px;font-size:12px;">정보처리기사</td>
+                        <td style="padding:8px 10px;font-size:11px;color:#64748b;">이기적 필기</td>
+                        <td style="padding:8px 10px;text-align:center;"><span style="background:#eff6ff;color:#2563eb;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;">중</span></td>
+                        <td style="padding:8px 10px;text-align:center;"><span style="background:#f0fdf4;color:#16a34a;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;">합격</span></td>
+                      </tr>
+                      <tr style="border-bottom:1px solid #f1f5f9;cursor:pointer;">
+                        <td style="padding:8px 10px;font-size:11px;color:#cbd5e1;">6</td>
+                        <td style="padding:8px 10px;font-size:12px;">SQLD</td>
+                        <td style="padding:8px 10px;font-size:11px;color:#64748b;">SQL 전문가 가이드</td>
+                        <td style="padding:8px 10px;text-align:center;"><span style="background:#f0fdf4;color:#15803d;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;">하</span></td>
+                        <td style="padding:8px 10px;text-align:center;"><span style="background:#f0fdf4;color:#16a34a;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;">합격</span></td>
+                      </tr>
+                      <tr style="cursor:pointer;">
+                        <td style="padding:8px 10px;font-size:11px;color:#cbd5e1;">5</td>
+                        <td style="padding:8px 10px;font-size:12px;">정보보안기사</td>
+                        <td style="padding:8px 10px;font-size:11px;color:#64748b;">알기사 정보보안기사</td>
+                        <td style="padding:8px 10px;text-align:center;"><span style="background:#fff1f2;color:#e11d48;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;">상</span></td>
+                        <td style="padding:8px 10px;text-align:center;"><span style="background:#fef2f2;color:#dc2626;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;">불합격</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="artboard-route">/reviews</span>
+      </div>
+
+      <div class="connector">
+        <svg width="42" height="18" viewBox="0 0 42 18" fill="none"><line x1="0" y1="9" x2="32" y2="9" stroke="#bbb" stroke-width="1.5"/><polyline points="26,4 34,9 26,14" stroke="#bbb" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="connector-label">리뷰 작성 클릭</span>
+      </div>
+
+      <!-- ── Screen 2: 리뷰 작성 ── -->
+      <div class="artboard">
+        <span class="artboard-name">리뷰 작성</span>
+        <div class="sw">
+          <div class="si">
+            <div style="min-height:660px;background:#f8fafc;font-family:-apple-system,'Segoe UI',sans-serif;font-size:14px;color:#374151;">
+              <!-- Navbar -->
+              <nav style="background:#ffffff;border-bottom:1px solid #e5e7eb;height:52px;display:flex;align-items:center;padding:0 20px;">
+                <span style="font-weight:700;font-size:15px;color:#1e293b;letter-spacing:-0.3px;margin-right:20px;">자격증 교재 리뷰</span>
+                <div style="display:flex;align-items:center;gap:2px;">
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">대시보드</a>
+                  <a style="color:#6366f1;font-size:13px;padding:5px 10px;border-radius:6px;background:#eef2ff;text-decoration:none;">리뷰 작성</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">교재 랭킹</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">통계 분석</a>
+                </div>
+              </nav>
+
+              <div style="padding:20px;max-width:700px;">
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                  <div style="padding:11px 16px;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:13px;color:#1e293b;">리뷰 작성</div>
+                  <div style="padding:18px 20px;">
+
+                    <!-- 자격증 이름 -->
+                    <div style="margin-bottom:14px;">
+                      <label style="display:block;font-size:11px;color:#6b7280;font-weight:600;margin-bottom:5px;">자격증 이름</label>
+                      <div style="height:32px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;">
+                        <span style="font-size:11px;color:#94a3b8;">정보처리기사</span>
+                      </div>
+                      <div style="font-size:10px;color:#94a3b8;margin-top:4px;display:flex;align-items:center;gap:4px;">
+                        <span style="display:inline-block;width:8px;height:8px;border:1.5px solid #c7d2fe;border-top-color:#6366f1;border-radius:50%;"></span>
+                        자격증 목록 불러오는 중...
+                      </div>
+                    </div>
+
+                    <!-- 사용 교재 -->
+                    <div style="margin-bottom:14px;">
+                      <label style="display:block;font-size:11px;color:#6b7280;font-weight:600;margin-bottom:5px;">사용 교재</label>
+                      <div style="display:flex;gap:6px;margin-bottom:6px;">
+                        <div style="flex:1;height:30px;background:#fff;border:1px solid #e5e7eb;border-radius:8px 0 0 8px;display:flex;align-items:center;padding:0 10px;">
+                          <span style="font-size:11px;color:#cbd5e1;">교재명 검색</span>
+                        </div>
+                        <div style="height:30px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:0 8px 8px 0;display:flex;align-items:center;padding:0 10px;">
+                          <span style="font-size:11px;color:#6b7280;">검색</span>
+                        </div>
+                      </div>
+                      <div style="height:30px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;">
+                        <span style="font-size:11px;color:#cbd5e1;">교재명 (검색 후 선택하거나 직접 입력)</span>
+                      </div>
+                    </div>
+
+                    <!-- 난이도 + 합격 여부 -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                      <div>
+                        <label style="display:block;font-size:11px;color:#6b7280;font-weight:600;margin-bottom:5px;">체감 난이도</label>
+                        <div style="height:30px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;">
+                          <span style="font-size:11px;color:#374151;">중 ▾</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label style="display:block;font-size:11px;color:#6b7280;font-weight:600;margin-bottom:5px;">합격 여부</label>
+                        <div style="height:30px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;">
+                          <span style="font-size:11px;color:#374151;">합격 ▾</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 공부 기간 슬라이더 -->
+                    <div style="margin-bottom:14px;">
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <label style="font-size:11px;color:#6b7280;font-weight:600;">공부 기간</label>
+                        <span style="font-size:12px;font-weight:700;color:#6366f1;background:#eef2ff;border:1px solid #c7d2fe;border-radius:6px;padding:2px 8px;">3개월</span>
+                      </div>
+                      <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px 8px;">
+                        <div style="height:5px;background:linear-gradient(to right,#6366f1 0%,#6366f1 41%,#e2e8f0 41%,#e2e8f0 100%);border-radius:99px;position:relative;margin-bottom:8px;">
+                          <div style="position:absolute;left:41%;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;background:#fff;border:2px solid #6366f1;border-radius:50%;box-shadow:0 1px 4px rgba(99,102,241,0.25);"></div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:9px;color:#94a3b8;">
+                          <span>1주</span><span>1개월</span><span>3개월</span><span>6개월</span><span>1년</span><span>2년+</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 리뷰 내용 -->
+                    <div style="margin-bottom:14px;">
+                      <label style="display:block;font-size:11px;color:#6b7280;font-weight:600;margin-bottom:5px;">리뷰 내용</label>
+                      <div style="height:70px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px;">
+                        <span style="font-size:11px;color:#cbd5e1;">교재 사용 후기를 자유롭게 작성해주세요.</span>
+                      </div>
+                    </div>
+
+                    <!-- PIN -->
+                    <div style="margin-bottom:16px;">
+                      <label style="display:block;font-size:11px;color:#6b7280;font-weight:600;margin-bottom:5px;">PIN 번호 (4자리 숫자)</label>
+                      <div style="height:30px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;width:160px;display:flex;align-items:center;padding:0 10px;">
+                        <span style="font-size:11px;color:#cbd5e1;">수정/삭제 시 사용할 4자리 숫자</span>
+                      </div>
+                      <div style="font-size:10px;color:#9ca3af;margin-top:3px;">이 PIN은 나중에 리뷰를 수정하거나 삭제할 때 필요합니다.</div>
+                    </div>
+
+                    <!-- 버튼 -->
+                    <div style="display:flex;gap:8px;">
+                      <div style="background:#6366f1;color:#fff;font-size:12px;padding:7px 18px;border-radius:7px;cursor:pointer;">작성 완료</div>
+                      <div style="background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;">취소</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="artboard-route">/reviews/new</span>
+      </div>
+
+      <div class="connector">
+        <svg width="42" height="18" viewBox="0 0 42 18" fill="none"><line x1="0" y1="9" x2="32" y2="9" stroke="#bbb" stroke-width="1.5"/><polyline points="26,4 34,9 26,14" stroke="#bbb" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="connector-label">행 클릭 / 작성 완료</span>
+      </div>
+
+      <!-- ── Screen 3: 리뷰 상세 ── -->
+      <div class="artboard">
+        <span class="artboard-name">리뷰 상세</span>
+        <div class="sw">
+          <div class="si">
+            <div style="min-height:660px;background:#f8fafc;font-family:-apple-system,'Segoe UI',sans-serif;font-size:14px;color:#374151;">
+              <!-- Navbar -->
+              <nav style="background:#ffffff;border-bottom:1px solid #e5e7eb;height:52px;display:flex;align-items:center;padding:0 20px;">
+                <span style="font-weight:700;font-size:15px;color:#1e293b;letter-spacing:-0.3px;margin-right:20px;">자격증 교재 리뷰</span>
+                <div style="display:flex;align-items:center;gap:2px;">
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">대시보드</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">리뷰 작성</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">교재 랭킹</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">통계 분석</a>
+                </div>
+              </nav>
+
+              <div style="padding:20px;max-width:700px;">
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                  <div style="padding:11px 16px;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:13px;color:#1e293b;display:flex;justify-content:space-between;align-items:center;">
+                    <span>리뷰 상세</span>
+                    <span style="background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;">목록으로</span>
+                  </div>
+                  <div style="padding:14px 16px;">
+                    <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+                      <tbody>
+                        <tr style="border-bottom:1px solid #f1f5f9;">
+                          <th style="width:100px;font-size:11px;color:#9ca3af;font-weight:500;background:#f9fafb;padding:9px 10px;text-align:left;">자격증</th>
+                          <td style="padding:9px 10px;font-size:12px;">정보처리기사</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #f1f5f9;">
+                          <th style="font-size:11px;color:#9ca3af;font-weight:500;background:#f9fafb;padding:9px 10px;text-align:left;">교재</th>
+                          <td style="padding:9px 10px;font-size:12px;">이기적 정보처리기사 필기 기본서</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #f1f5f9;">
+                          <th style="font-size:11px;color:#9ca3af;font-weight:500;background:#f9fafb;padding:9px 10px;text-align:left;">난이도</th>
+                          <td style="padding:9px 10px;"><span style="background:#eff6ff;color:#2563eb;font-size:11px;font-weight:500;padding:2px 7px;border-radius:4px;">중</span></td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #f1f5f9;">
+                          <th style="font-size:11px;color:#9ca3af;font-weight:500;background:#f9fafb;padding:9px 10px;text-align:left;">합격 여부</th>
+                          <td style="padding:9px 10px;"><span style="background:#f0fdf4;color:#16a34a;font-size:11px;font-weight:500;padding:2px 7px;border-radius:4px;">합격</span></td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #f1f5f9;">
+                          <th style="font-size:11px;color:#9ca3af;font-weight:500;background:#f9fafb;padding:9px 10px;text-align:left;">공부 기간</th>
+                          <td style="padding:9px 10px;font-size:12px;">3개월</td>
+                        </tr>
+                        <tr>
+                          <th style="font-size:11px;color:#9ca3af;font-weight:500;background:#f9fafb;padding:9px 10px;text-align:left;vertical-align:top;">리뷰 내용</th>
+                          <td style="padding:9px 10px;font-size:12px;line-height:1.7;color:#374151;">이기적 교재는 기출 분석이 잘 되어 있어서 단기 합격에 매우 유리합니다. CBT 모의고사 무료 제공도 큰 장점입니다.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <div style="display:flex;gap:8px;margin-bottom:14px;">
+                      <div style="background:#6366f1;color:#fff;font-size:11px;padding:6px 14px;border-radius:6px;cursor:pointer;">수정</div>
+                      <div style="background:#fee2e2;border:1px solid #fecaca;color:#dc2626;font-size:11px;padding:6px 14px;border-radius:6px;cursor:pointer;">삭제</div>
+                    </div>
+
+                    <!-- 이 자격증 더 알아보기 -->
+                    <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;">
+                      <div style="font-size:10px;font-weight:600;color:#94a3b8;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:8px;">이 자격증 더 알아보기</div>
+                      <div style="display:flex;gap:8px;">
+                        <div style="background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;">정보처리기사 통계 분석</div>
+                        <div style="background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;">정보처리기사 교재 랭킹</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="artboard-route">/reviews/{id}</span>
+      </div>
+
+    </div>
+  </div><!-- /row 1 -->
+
+  <!-- 세로 화살표: 리뷰 상세 → PIN 인증 -->
+  <div style="margin-left:88px;margin-bottom:16px;display:flex;align-items:flex-start;">
+    <div style="display:flex;flex-direction:column;align-items:center;margin-left:1058px;">
+      <div style="width:2px;height:36px;background:#ccc;"></div>
+      <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #ccc;"></div>
+      <div style="font-size:9px;color:#ccc;margin-top:4px;">수정/삭제 클릭</div>
+    </div>
+  </div>
+
+  <!-- ========================= ROW 2: 수정/삭제 플로우 ========================= -->
+  <div class="flow-row">
+    <div class="row-label-col"><span>수정 플로우</span></div>
+    <div class="screens-row">
+
+      <!-- 빈 공간 (대시보드 + 리뷰 작성 너비에 해당) -->
+      <div style="width:764px;flex-shrink:0;"></div>
+
+      <!-- ── Screen 4: PIN 인증 ── -->
+      <div class="artboard">
+        <span class="artboard-name">PIN 인증</span>
+        <div class="sw">
+          <div class="si">
+            <div style="min-height:660px;background:#f8fafc;font-family:-apple-system,'Segoe UI',sans-serif;font-size:14px;color:#374151;">
+              <!-- Navbar -->
+              <nav style="background:#ffffff;border-bottom:1px solid #e5e7eb;height:52px;display:flex;align-items:center;padding:0 20px;">
+                <span style="font-weight:700;font-size:15px;color:#1e293b;letter-spacing:-0.3px;margin-right:20px;">자격증 교재 리뷰</span>
+                <div style="display:flex;align-items:center;gap:2px;">
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">대시보드</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">리뷰 작성</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">교재 랭킹</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">통계 분석</a>
+                </div>
+              </nav>
+
+              <div style="padding:40px 20px;display:flex;justify-content:center;">
+                <div style="width:400px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                  <div style="padding:11px 16px;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:13px;color:#1e293b;">PIN 확인</div>
+                  <div style="padding:20px 24px;">
+                    <p style="font-size:12px;color:#9ca3af;margin-bottom:16px;line-height:1.6;">리뷰 작성 시 등록한 4자리 PIN을 입력해주세요.</p>
+
+                    <!-- 오류 메시지 (예시) -->
+                    <div style="margin-bottom:14px;padding:9px 12px;background:#fff0f2;border-radius:8px;color:#dc2626;font-size:12px;border:1px solid #fecaca;">
+                      PIN이 일치하지 않습니다.
+                    </div>
+
+                    <div style="margin-bottom:20px;">
+                      <label style="display:block;font-size:11px;color:#6b7280;font-weight:600;margin-bottom:7px;">PIN 번호</label>
+                      <div style="height:48px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size:22px;letter-spacing:0.4em;color:#c7d2fe;">● ● ● ●</span>
+                      </div>
+                    </div>
+
+                    <div style="display:flex;gap:8px;">
+                      <div style="background:#6366f1;color:#fff;font-size:12px;padding:8px 20px;border-radius:7px;cursor:pointer;">확인</div>
+                      <div style="background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:12px;padding:8px 14px;border-radius:7px;cursor:pointer;">취소</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="artboard-route">/reviews/{id}/pin-check</span>
+      </div>
+
+      <div class="connector">
+        <svg width="42" height="18" viewBox="0 0 42 18" fill="none"><line x1="0" y1="9" x2="32" y2="9" stroke="#bbb" stroke-width="1.5"/><polyline points="26,4 34,9 26,14" stroke="#bbb" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="connector-label">PIN 확인 성공</span>
+      </div>
+
+      <!-- ── Screen 5: 리뷰 수정 ── -->
+      <div class="artboard">
+        <span class="artboard-name">리뷰 수정</span>
+        <div class="sw">
+          <div class="si">
+            <div style="min-height:660px;background:#f8fafc;font-family:-apple-system,'Segoe UI',sans-serif;font-size:14px;color:#374151;">
+              <!-- Navbar -->
+              <nav style="background:#ffffff;border-bottom:1px solid #e5e7eb;height:52px;display:flex;align-items:center;padding:0 20px;">
+                <span style="font-weight:700;font-size:15px;color:#1e293b;letter-spacing:-0.3px;margin-right:20px;">자격증 교재 리뷰</span>
+                <div style="display:flex;align-items:center;gap:2px;">
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">대시보드</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">리뷰 작성</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">교재 랭킹</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">통계 분석</a>
+                </div>
+              </nav>
+
+              <div style="padding:20px;max-width:700px;">
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                  <div style="padding:11px 16px;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:13px;color:#1e293b;">리뷰 수정</div>
+                  <div style="padding:18px 20px;">
+
+                    <!-- 자격증 이름 -->
+                    <div style="margin-bottom:12px;">
+                      <label style="display:block;font-size:11px;color:#6b7280;font-weight:600;margin-bottom:5px;">자격증 이름</label>
+                      <div style="height:30px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;">
+                        <span style="font-size:12px;color:#374151;">정보처리기사</span>
+                      </div>
+                    </div>
+
+                    <!-- 사용 교재 -->
+                    <div style="margin-bottom:12px;">
+                      <label style="display:block;font-size:11px;color:#6b7280;font-weight:600;margin-bottom:5px;">사용 교재</label>
+                      <div style="height:30px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;">
+                        <span style="font-size:12px;color:#374151;">이기적 정보처리기사 필기 기본서</span>
+                      </div>
+                    </div>
+
+                    <!-- 난이도 + 합격 여부 -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                      <div>
+                        <label style="display:block;font-size:11px;color:#6b7280;font-weight:600;margin-bottom:5px;">체감 난이도</label>
+                        <div style="height:30px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;">
+                          <span style="font-size:11px;color:#374151;">중 ▾</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label style="display:block;font-size:11px;color:#6b7280;font-weight:600;margin-bottom:5px;">합격 여부</label>
+                        <div style="height:30px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;padding:0 10px;">
+                          <span style="font-size:11px;color:#374151;">합격 ▾</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 공부 기간 슬라이더 -->
+                    <div style="margin-bottom:12px;">
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <label style="font-size:11px;color:#6b7280;font-weight:600;">공부 기간</label>
+                        <span style="font-size:12px;font-weight:700;color:#6366f1;background:#eef2ff;border:1px solid #c7d2fe;border-radius:6px;padding:2px 8px;">3개월</span>
+                      </div>
+                      <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px 8px;">
+                        <div style="height:5px;background:linear-gradient(to right,#6366f1 0%,#6366f1 41%,#e2e8f0 41%,#e2e8f0 100%);border-radius:99px;position:relative;margin-bottom:8px;">
+                          <div style="position:absolute;left:41%;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;background:#fff;border:2px solid #6366f1;border-radius:50%;box-shadow:0 1px 4px rgba(99,102,241,0.25);"></div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:9px;color:#94a3b8;">
+                          <span>1주</span><span>1개월</span><span>3개월</span><span>6개월</span><span>1년</span><span>2년+</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 리뷰 내용 -->
+                    <div style="margin-bottom:16px;">
+                      <label style="display:block;font-size:11px;color:#6b7280;font-weight:600;margin-bottom:5px;">리뷰 내용</label>
+                      <div style="height:70px;background:#fff;border:1px solid #6366f1;border-radius:8px;padding:8px 10px;box-shadow:0 0 0 2px rgba(99,102,241,0.08);">
+                        <span style="font-size:11px;color:#374151;line-height:1.6;">이기적 교재는 기출 분석이 잘 되어 있어서 단기 합격에 매우 유리합니다. CBT 모의고사 무료 제공도 큰 장점입니다.</span>
+                      </div>
+                    </div>
+
+                    <!-- 버튼 -->
+                    <div style="display:flex;gap:8px;">
+                      <div style="background:#6366f1;color:#fff;font-size:12px;padding:7px 18px;border-radius:7px;cursor:pointer;">수정 완료</div>
+                      <div style="background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;">취소</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="artboard-route">/reviews/{id}/edit</span>
+      </div>
+
+    </div>
+  </div><!-- /row 2 -->
+
+  <!-- ========================= ROW 3: 분석 플로우 ========================= -->
+  <div class="flow-row">
+    <div class="row-label-col"><span>분석 플로우</span></div>
+    <div class="screens-row">
+
+      <!-- ── Screen 6: 교재 랭킹 ── -->
+      <div class="artboard">
+        <span class="artboard-name">교재 랭킹</span>
+        <div class="sw">
+          <div class="si">
+            <div style="min-height:660px;background:#f8fafc;font-family:-apple-system,'Segoe UI',sans-serif;font-size:14px;color:#374151;">
+              <!-- Navbar -->
+              <nav style="background:#ffffff;border-bottom:1px solid #e5e7eb;height:52px;display:flex;align-items:center;padding:0 20px;">
+                <span style="font-weight:700;font-size:15px;color:#1e293b;letter-spacing:-0.3px;margin-right:20px;">자격증 교재 리뷰</span>
+                <div style="display:flex;align-items:center;gap:2px;">
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">대시보드</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">리뷰 작성</a>
+                  <a style="color:#6366f1;font-size:13px;padding:5px 10px;border-radius:6px;background:#eef2ff;text-decoration:none;">교재 랭킹</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">통계 분석</a>
+                </div>
+              </nav>
+
+              <div style="padding:16px 20px;max-width:760px;">
+                <!-- 상단 헤더 -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                  <span style="font-weight:600;font-size:14px;color:#1e293b;">자격증별 교재 랭킹</span>
+                  <span style="background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;">대시보드로</span>
+                </div>
+
+                <!-- 자격증 검색 -->
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);margin-bottom:12px;">
+                  <div style="padding:10px 14px;">
+                    <div style="font-size:10px;font-weight:600;color:#94a3b8;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:5px;">자격증 검색</div>
+                    <div style="height:30px;background:#fff;border:1px solid #e5e7eb;border-radius:6px;display:flex;align-items:center;padding:0 10px;margin-bottom:5px;">
+                      <span style="font-size:11px;color:#cbd5e1;">자격증 이름을 입력하세요</span>
+                    </div>
+                    <div style="font-size:10px;color:#94a3b8;">총 5개 자격증</div>
+                  </div>
+                </div>
+
+                <!-- 정보처리기사 랭킹 카드 -->
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);margin-bottom:10px;">
+                  <div style="padding:10px 14px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-weight:600;font-size:13px;color:#1e293b;">정보처리기사</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span style="font-size:11px;color:#6366f1;border:1px solid #c7d2fe;padding:3px 8px;border-radius:6px;cursor:pointer;">AI 분석</span>
+                      <span style="background:#eef2ff;color:#6366f1;font-size:10px;font-weight:500;padding:2px 7px;border-radius:4px;">합격자 교재 순위</span>
+                    </div>
+                  </div>
+                  <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                      <tr style="border-bottom:1px solid #e5e7eb;">
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 10px;background:#f8fafc;text-align:center;width:36px;">순위</th>
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 10px;background:#f8fafc;text-align:left;">교재 이름</th>
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 10px;background:#f8fafc;text-align:center;width:54px;">합격자</th>
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 10px;background:#f8fafc;text-align:center;width:46px;">총 리뷰</th>
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 10px;background:#f8fafc;min-width:100px;">합격률</th>
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:6px 10px;background:#f8fafc;text-align:center;width:70px;">평균 기간</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="text-align:center;padding:8px 10px;font-weight:700;color:#6366f1;font-size:13px;">1</td>
+                        <td style="padding:8px 10px;font-size:12px;">이기적 필기 기본서 <span style="background:#eef2ff;color:#6366f1;font-size:9px;font-weight:500;padding:1px 5px;border-radius:3px;">★ 추천</span></td>
+                        <td style="text-align:center;padding:8px 10px;"><span style="background:#eef2ff;color:#6366f1;font-size:11px;font-weight:500;padding:2px 6px;border-radius:4px;">14</span></td>
+                        <td style="text-align:center;padding:8px 10px;font-size:11px;color:#94a3b8;">18</td>
+                        <td style="padding:8px 10px;">
+                          <div style="display:flex;align-items:center;gap:6px;">
+                            <div style="flex:1;height:6px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                              <div style="width:78%;height:100%;background:#818cf8;border-radius:4px;"></div>
+                            </div>
+                            <span style="font-size:10px;color:#6366f1;font-weight:600;min-width:28px;text-align:right;">78%</span>
+                          </div>
+                        </td>
+                        <td style="text-align:center;padding:8px 10px;font-size:11px;color:#94a3b8;">3개월</td>
+                      </tr>
+                      <tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="text-align:center;padding:8px 10px;font-weight:700;color:#6366f1;font-size:13px;">2</td>
+                        <td style="padding:8px 10px;font-size:12px;">시나공 필기 기본서</td>
+                        <td style="text-align:center;padding:8px 10px;"><span style="background:#eef2ff;color:#6366f1;font-size:11px;font-weight:500;padding:2px 6px;border-radius:4px;">7</span></td>
+                        <td style="text-align:center;padding:8px 10px;font-size:11px;color:#94a3b8;">10</td>
+                        <td style="padding:8px 10px;">
+                          <div style="display:flex;align-items:center;gap:6px;">
+                            <div style="flex:1;height:6px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                              <div style="width:70%;height:100%;background:#818cf8;border-radius:4px;"></div>
+                            </div>
+                            <span style="font-size:10px;color:#6366f1;font-weight:600;min-width:28px;text-align:right;">70%</span>
+                          </div>
+                        </td>
+                        <td style="text-align:center;padding:8px 10px;font-size:11px;color:#94a3b8;">4개월</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <!-- AI 분석 패널 (펼쳐진 상태) -->
+                  <div style="border-top:1px solid #e5e7eb;padding:12px 14px 10px;">
+                    <div style="font-size:10px;font-weight:700;color:#6366f1;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;">✦ 1위 교재 추천 이유 · 이기적 필기 기본서</div>
+                    <div style="background:#f5f3ff;border:1px solid #e0e7ff;border-radius:8px;padding:10px 12px;font-size:11px;color:#374151;line-height:1.7;">이기적 교재는 최신 출제 경향을 반영한 방대한 문제 풀이와 단원별 핵심 정리가 강점입니다. CBT 모의고사 무료 제공으로 실전 대비에 효과적입니다.</div>
+                  </div>
+                </div>
+
+                <!-- SQLD 랭킹 카드 -->
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                  <div style="padding:10px 14px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-weight:600;font-size:13px;color:#1e293b;">SQLD</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span style="font-size:11px;color:#6366f1;border:1px solid #c7d2fe;padding:3px 8px;border-radius:6px;cursor:pointer;">AI 분석</span>
+                      <span style="background:#eef2ff;color:#6366f1;font-size:10px;font-weight:500;padding:2px 7px;border-radius:4px;">합격자 교재 순위</span>
+                    </div>
+                  </div>
+                  <table style="width:100%;border-collapse:collapse;">
+                    <tbody>
+                      <tr>
+                        <td style="text-align:center;padding:8px 10px;font-weight:700;color:#6366f1;font-size:13px;width:36px;">1</td>
+                        <td style="padding:8px 10px;font-size:12px;">SQL 전문가 가이드 <span style="background:#eef2ff;color:#6366f1;font-size:9px;font-weight:500;padding:1px 5px;border-radius:3px;">★ 추천</span></td>
+                        <td style="text-align:center;padding:8px 10px;width:54px;"><span style="background:#eef2ff;color:#6366f1;font-size:11px;font-weight:500;padding:2px 6px;border-radius:4px;">7</span></td>
+                        <td style="text-align:center;padding:8px 10px;font-size:11px;color:#94a3b8;width:46px;">8</td>
+                        <td style="padding:8px 10px;">
+                          <div style="display:flex;align-items:center;gap:6px;">
+                            <div style="flex:1;height:6px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                              <div style="width:88%;height:100%;background:#818cf8;border-radius:4px;"></div>
+                            </div>
+                            <span style="font-size:10px;color:#6366f1;font-weight:600;min-width:28px;text-align:right;">88%</span>
+                          </div>
+                        </td>
+                        <td style="text-align:center;padding:8px 10px;font-size:11px;color:#94a3b8;width:70px;">1개월</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="artboard-route">/reviews/ranking</span>
+      </div>
+
+      <div class="connector">
+        <svg width="42" height="18" viewBox="0 0 42 18" fill="none"><line x1="0" y1="9" x2="32" y2="9" stroke="#bbb" stroke-width="1.5"/><polyline points="26,4 34,9 26,14" stroke="#bbb" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="connector-label">통계 분석 클릭</span>
+      </div>
+
+      <!-- ── Screen 7: 통계 분석 ── -->
+      <div class="artboard">
+        <span class="artboard-name">통계 분석</span>
+        <div class="sw">
+          <div class="si">
+            <div style="min-height:660px;background:#f8fafc;font-family:-apple-system,'Segoe UI',sans-serif;font-size:14px;color:#374151;">
+              <!-- Navbar -->
+              <nav style="background:#ffffff;border-bottom:1px solid #e5e7eb;height:52px;display:flex;align-items:center;padding:0 20px;">
+                <span style="font-weight:700;font-size:15px;color:#1e293b;letter-spacing:-0.3px;margin-right:20px;">자격증 교재 리뷰</span>
+                <div style="display:flex;align-items:center;gap:2px;">
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">대시보드</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">리뷰 작성</a>
+                  <a style="color:#94a3b8;font-size:13px;padding:5px 10px;border-radius:6px;text-decoration:none;">교재 랭킹</a>
+                  <a style="color:#6366f1;font-size:13px;padding:5px 10px;border-radius:6px;background:#eef2ff;text-decoration:none;">통계 분석</a>
+                </div>
+              </nav>
+
+              <div style="padding:16px 20px;max-width:820px;">
+                <!-- 상단 헤더 -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                  <span style="font-weight:600;font-size:14px;color:#1e293b;">자격증별 통계 분석</span>
+                  <span style="background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;">대시보드로</span>
+                </div>
+
+                <!-- 자격증 선택 -->
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);margin-bottom:12px;">
+                  <div style="padding:10px 14px;">
+                    <div style="display:flex;gap:6px;align-items:flex-end;">
+                      <div style="flex:1;">
+                        <div style="font-size:10px;font-weight:600;color:#94a3b8;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:4px;">자격증 선택</div>
+                        <div style="height:30px;background:#fff;border:1px solid #6366f1;border-radius:6px;display:flex;align-items:center;padding:0 10px;box-shadow:0 0 0 2px rgba(99,102,241,0.1);">
+                          <span style="font-size:12px;color:#374151;">정보처리기사</span>
+                        </div>
+                      </div>
+                      <div style="background:#6366f1;color:#fff;font-size:12px;padding:7px 18px;border-radius:7px;cursor:pointer;height:30px;display:flex;align-items:center;">조회</div>
+                      <div style="background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;height:30px;display:flex;align-items:center;">전체 보기</div>
+                    </div>
+                    <div style="font-size:11px;color:#6366f1;font-weight:500;margin-top:6px;">정보처리기사 · 총 28개 리뷰 기준</div>
+                  </div>
+                </div>
+
+                <!-- AI 합격 팁 -->
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);margin-bottom:12px;">
+                  <div style="padding:10px 14px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:6px;">
+                    <span style="color:#6366f1;font-size:13px;">✦</span>
+                    <span style="font-weight:600;font-size:12px;color:#1e293b;">AI 합격 팁</span>
+                    <span style="margin-left:auto;background:#eef2ff;color:#6366f1;font-size:10px;padding:2px 7px;border-radius:4px;">분석 완료</span>
+                  </div>
+                  <div style="padding:12px 14px;">
+                    <div style="background:#f5f3ff;border:1px solid #e0e7ff;border-radius:10px;padding:12px 14px;">
+                      <div style="font-size:10px;font-weight:700;color:#6366f1;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;">AI 분석 결과</div>
+                      <div style="font-size:12px;color:#374151;line-height:1.8;">정보처리기사 합격을 위해서는 최소 2~3개월의 꾸준한 학습이 권장됩니다. 이기적, 시나공 교재 모두 합격률이 높으며, CBT 실전 연습이 특히 효과적입니다. 필기보다 실기가 어렵다는 후기가 많으므로 실기 준비에도 충분한 시간을 투자하세요.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 차트 2개 -->
+                <div style="display:grid;grid-template-columns:200px 1fr;gap:10px;margin-bottom:12px;">
+                  <!-- 난이도 분포 (도넛 차트 모사) -->
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:12px;color:#1e293b;">체감 난이도 분포</div>
+                    <div style="padding:14px;display:flex;flex-direction:column;align-items:center;gap:10px;">
+                      <!-- SVG 도넛 -->
+                      <svg width="120" height="120" viewBox="0 0 120 120">
+                        <!-- 하(초록) - 30% -->
+                        <circle cx="60" cy="60" r="46" fill="none" stroke="#bbf7d0" stroke-width="18"
+                          stroke-dasharray="86.7 202.5" stroke-linecap="butt" transform="rotate(-90 60 60)"/>
+                        <!-- 중(파랑) - 45% -->
+                        <circle cx="60" cy="60" r="46" fill="none" stroke="#bfdbfe" stroke-width="18"
+                          stroke-dasharray="130 202.5" stroke-linecap="butt" transform="rotate(-90 60 60)" stroke-dashoffset="-86.7"/>
+                        <!-- 상(빨강) - 25% -->
+                        <circle cx="60" cy="60" r="46" fill="none" stroke="#fecaca" stroke-width="18"
+                          stroke-dasharray="50 202.5" stroke-linecap="butt" transform="rotate(-90 60 60)" stroke-dashoffset="-216.7"/>
+                        <text x="60" y="65" text-anchor="middle" fill="#1e293b" font-size="13" font-weight="700">28</text>
+                      </svg>
+                      <!-- 범례 -->
+                      <div style="display:flex;gap:12px;font-size:10px;color:#64748b;">
+                        <div style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#bbf7d0;display:inline-block;"></span>하</div>
+                        <div style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#bfdbfe;display:inline-block;"></span>중</div>
+                        <div style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#fecaca;display:inline-block;"></span>상</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 공부 기간별 합격률 (가로 바 차트 모사) -->
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:12px;color:#1e293b;">공부 기간별 합격률</div>
+                    <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
+                      <div>
+                        <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-bottom:4px;">
+                          <span>1개월 미만</span><span style="color:#6366f1;font-weight:600;">40%</span>
+                        </div>
+                        <div style="height:20px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                          <div style="width:40%;height:100%;background:#c7d2fe;border-radius:4px;"></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-bottom:4px;">
+                          <span>1~3개월</span><span style="color:#6366f1;font-weight:600;">72%</span>
+                        </div>
+                        <div style="height:20px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                          <div style="width:72%;height:100%;background:#c7d2fe;border-radius:4px;"></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-bottom:4px;">
+                          <span>3~6개월</span><span style="color:#6366f1;font-weight:600;">85%</span>
+                        </div>
+                        <div style="height:20px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                          <div style="width:85%;height:100%;background:#c7d2fe;border-radius:4px;"></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-bottom:4px;">
+                          <span>6개월 이상</span><span style="color:#6366f1;font-weight:600;">88%</span>
+                        </div>
+                        <div style="height:20px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                          <div style="width:88%;height:100%;background:#c7d2fe;border-radius:4px;"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 공부 기간별 상세 테이블 -->
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                  <div style="padding:9px 12px;border-bottom:1px solid #e5e7eb;font-weight:600;font-size:12px;color:#1e293b;">공부 기간별 상세 현황</div>
+                  <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                      <tr style="border-bottom:1px solid #e5e7eb;">
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:7px 10px;background:#f8fafc;text-align:left;">공부 기간</th>
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:7px 10px;background:#f8fafc;text-align:center;width:80px;">리뷰 수</th>
+                        <th style="font-size:10px;color:#94a3b8;font-weight:600;padding:7px 10px;background:#f8fafc;min-width:140px;">합격률</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:8px 10px;font-size:12px;">1개월 미만</td>
+                        <td style="text-align:center;padding:8px 10px;font-size:11px;color:#94a3b8;">5</td>
+                        <td style="padding:8px 10px;">
+                          <div style="display:flex;align-items:center;gap:6px;">
+                            <div style="flex:1;height:6px;background:#f1f5f9;border-radius:4px;overflow:hidden;"><div style="width:40%;height:100%;background:#818cf8;border-radius:4px;"></div></div>
+                            <span style="font-size:10px;color:#6366f1;font-weight:600;min-width:28px;text-align:right;">40%</span>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:8px 10px;font-size:12px;">1~3개월</td>
+                        <td style="text-align:center;padding:8px 10px;font-size:11px;color:#94a3b8;">11</td>
+                        <td style="padding:8px 10px;">
+                          <div style="display:flex;align-items:center;gap:6px;">
+                            <div style="flex:1;height:6px;background:#f1f5f9;border-radius:4px;overflow:hidden;"><div style="width:72%;height:100%;background:#818cf8;border-radius:4px;"></div></div>
+                            <span style="font-size:10px;color:#6366f1;font-weight:600;min-width:28px;text-align:right;">72%</span>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:8px 10px;font-size:12px;">3~6개월</td>
+                        <td style="text-align:center;padding:8px 10px;font-size:11px;color:#94a3b8;">8</td>
+                        <td style="padding:8px 10px;">
+                          <div style="display:flex;align-items:center;gap:6px;">
+                            <div style="flex:1;height:6px;background:#f1f5f9;border-radius:4px;overflow:hidden;"><div style="width:85%;height:100%;background:#818cf8;border-radius:4px;"></div></div>
+                            <span style="font-size:10px;color:#6366f1;font-weight:600;min-width:28px;text-align:right;">85%</span>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 10px;font-size:12px;">6개월 이상</td>
+                        <td style="text-align:center;padding:8px 10px;font-size:11px;color:#94a3b8;">4</td>
+                        <td style="padding:8px 10px;">
+                          <div style="display:flex;align-items:center;gap:6px;">
+                            <div style="flex:1;height:6px;background:#f1f5f9;border-radius:4px;overflow:hidden;"><div style="width:88%;height:100%;background:#818cf8;border-radius:4px;"></div></div>
+                            <span style="font-size:10px;color:#6366f1;font-weight:600;min-width:28px;text-align:right;">88%</span>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="artboard-route">/reviews/stats</span>
+      </div>
+
+    </div>
+  </div><!-- /row 3 -->
+
+  <!-- Footer -->
+  <div style="border-top:1px solid #ddd;padding-top:22px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;gap:20px;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:#aaa;">
+        <svg width="28" height="12" viewBox="0 0 28 12" fill="none"><line x1="0" y1="6" x2="22" y2="6" stroke="#bbb" stroke-width="1.5"/><polyline points="18,2 24,6 18,10" stroke="#bbb" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        사용자 흐름 (다음 단계)
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:#aaa;">
+        <svg width="12" height="28" viewBox="0 0 12 28" fill="none"><line x1="6" y1="0" x2="6" y2="22" stroke="#bbb" stroke-width="1.5"/><polyline points="2,18 6,24 10,18" stroke="#bbb" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        세로 분기 흐름
+      </div>
+    </div>
+    <div style="font-size:10px;color:#ccc;font-weight:500;letter-spacing:0.3px;">
+      cert-book-review · Spring Boot 3.5 · Mustache · H2 · Ollama · 자격증 교재 리뷰 플랫폼
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
