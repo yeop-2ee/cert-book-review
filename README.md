@@ -1,169 +1,206 @@
-# cert-book-review
+# Cert Book Review
 
-자격증을 준비하는 수험생들을 위한 **교재 리뷰 및 랭킹 서비스**입니다.  
-실제 합격자들의 리뷰를 바탕으로 교재 순위, 합격률, 통계 등의 정보를 제공하며,  
-로컬 LLM(Ollama)을 활용한 AI 분석 기능을 포함합니다.
+> 자격증 수험생을 위한 교재 리뷰 및 랭킹 서비스
+
+실제 수험생들의 리뷰를 바탕으로 교재 순위, 합격률, 공부 통계를 제공합니다. 로컬 LLM(Ollama)을 활용해 AI 추천 이유 생성, 리뷰 요약, 합격 팁을 외부 API 비용 없이 로컬에서 처리합니다.
 
 ---
 
 ## 주요 기능
 
-### 리뷰
-- **리뷰 작성** : 자격증명(자동완성), 사용 교재(네이버 책 검색), 난이도, 합격 여부, 공부 기간(슬라이더), 리뷰 내용 입력
-- **리뷰 목록 / 상세 조회** : 자격증명·교재명 검색, 합격 여부·난이도 필터, 페이지네이션
-- **리뷰 수정 / 삭제** : 작성 시 설정한 4자리 PIN 인증 후 수정·삭제
+| 기능 | 설명 |
+|------|------|
+| **리뷰 작성** | 자격증명 자동완성, 네이버 책 검색, 난이도·합격여부·공부기간·내용 입력 |
+| **대시보드 통계** | 총 리뷰 수·자격증 수·전체 합격률·합격자 리뷰 수 카드 |
+| **교재 TOP 5 랭킹** | 합격자 기준 최다 사용 교재 순위 |
+| **자격증별 요약** | 리뷰 수·합격률·평균 난이도·주요 교재 요약 카드 |
+| **교재 랭킹** | 합격자 수·합격률·평균 공부기간 비교 |
+| **통계 분석** | 체감 난이도 분포(도넛 차트)·공부기간별 합격률(막대 차트) |
+| **AI 분석** | 1위 교재 추천 이유·리뷰 요약·합격 팁 생성 (Ollama 로컬 LLM) |
+| **PIN 인증** | 작성 시 설정한 4자리 PIN으로 본인 리뷰 수정·삭제 |
+| **최신 합격 후기** | 합격자들의 최신 리뷰 상위 노출 |
 
-### 대시보드
-- **통계 카드** : 총 리뷰 수, 등록 자격증 수, 전체 합격률, 합격자 리뷰 수
-- **합격자 기준 교재 TOP 5** : 전체 합격자 수 기준 교재 순위 (자격증명 검색 필터)
-- **자격증별 요약** : 자격증별 리뷰 수, 합격률, 평균 난이도, 주요 교재 (검색·페이지네이션)
-- **최신 합격 후기** : 최근 등록된 합격 리뷰 상위 노출
-- **전체 리뷰 목록** : 자격증·교재·합격여부·난이도 필터 + 페이지네이션
+---
 
-### 교재 랭킹
-- 자격증별 교재 순위 (합격자 수 기준), 합격률, 평균 공부기간
-- 1위 교재에 ★ 추천 배지 표시
-- **AI 분석** : 자격증별 버튼 클릭 시 1위 교재 추천 이유 + 전체 리뷰 요약 자동 생성
+## 서비스 흐름
 
-### 통계 분석
-- 자격증별 체감 난이도 분포 (Chart.js 도넛 차트, 슬라이스 내 퍼센트 표시)
-- 공부 기간별 합격률 (가로 막대 차트 + 상세 테이블)
-- **AI 합격 팁** : 자격증 선택 조회 시 자동으로 AI 합격 팁 생성 (전체 보기에서는 비표시)
-
-### UI / UX
-- 카드 페이드인 + 슬라이드업 애니메이션 (IntersectionObserver 기반, 화면 진입 시 순차 실행)
-- 합격률 프로그레스 바 슬라이드인 애니메이션
-- 숫자 1,000 단위 콤마 포맷
-- 새로고침 시 스크롤 위치 초기화 (scroll restoration 비활성화)
-- 반응형 레이아웃 (Bootstrap 5)
+```
+리뷰 작성
+  ├─ 자격증명 자동완성 (Q-net API)
+  ├─ 네이버 책 검색으로 교재 선택
+  └─ 난이도·합격여부·공부기간·내용·PIN 입력
+        ↓
+대시보드
+  ├─ 전체 통계 카드
+  ├─ 합격자 기준 교재 TOP 5
+  └─ 최신 합격 후기
+        ↓
+자격증 선택 → 교재 랭킹 상세
+  ├─ AI 추천 이유 생성 (Ollama gemma3:4b)
+  └─ 리뷰 요약 생성
+        ↓
+통계 분석
+  ├─ 체감 난이도 분포 (도넛 차트)
+  ├─ 공부기간별 합격률 (막대 차트)
+  └─ AI 합격 팁 생성
+```
 
 ---
 
 ## 기술 스택
 
-| 항목 | 내용 |
-|------|------|
-| Framework | Spring Boot 3.1.0 |
-| View | Mustache + Bootstrap 5 |
-| Database | H2 (In-Memory) |
-| ORM | Spring Data JPA (CrudRepository) |
-| 외부 API | 네이버 책 검색 API, Q-net 자격증 API |
-| 차트 | Chart.js 4.4.0 + chartjs-plugin-datalabels |
-| AI | Ollama (gemma3:4b) — 로컬 LLM |
-| 개발 도구 | IntelliJ IDEA |
-| 언어 | Java 17 |
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-17-007396?logo=openjdk&logoColor=white)](https://openjdk.org)
 
----
-
-## AI 기능 사용 조건
-
-AI 분석 기능은 [Ollama](https://ollama.com)가 로컬에서 실행 중이어야 합니다.
-
-```bash
-# Ollama 설치 후 모델 실행
-ollama run gemma3:4b
-```
-
-Ollama가 실행되지 않은 경우 AI 분석 버튼은 오류 메시지를 표시합니다.  
-다른 모델 사용 시 `OllamaClient.java`의 `MODEL` 상수를 변경하세요.
-
----
-
-## 엔티티 구조
-
-**Review**
-
-| 필드 | 타입 | 설명 |
+| 기술 | 버전 | 용도 |
 |------|------|------|
-| id | Long | 고유 번호 (자동 생성) |
-| certName | String | 자격증 이름 |
-| bookTitle | String | 사용 교재 이름 |
-| difficulty | String | 난이도 (하 / 중 / 상) |
-| passed | String | 합격 여부 (Y / N) |
-| studyPeriod | String | 공부 기간 |
-| content | String | 리뷰 내용 |
-| pin | String | 수정/삭제용 4자리 숫자 PIN |
+| [Spring Boot](https://spring.io/projects/spring-boot) | 3.5 | 웹 프레임워크 |
+| [Spring Data JPA](https://spring.io/projects/spring-data-jpa) | - | ORM (CrudRepository) |
+| [H2 Database](https://www.h2database.com) | - | 인메모리 데이터베이스 |
+| [Mustache](https://mustache.github.io) | - | 서버사이드 템플릿 엔진 |
+| [Lombok](https://projectlombok.org) | - | 보일러플레이트 제거 |
+| [Bootstrap](https://getbootstrap.com) | 5 | UI 프레임워크 |
+| [Chart.js](https://www.chartjs.org) | 4.4.0 | 통계 차트 |
+| [Ollama](https://ollama.com) | latest | 로컬 LLM 서버 (gemma3:4b) |
+| 네이버 책 검색 API | - | 교재 검색 |
+| Q-net 자격증 조회 API | - | 자격증명 자동완성 |
 
 ---
 
 ## 프로젝트 구조
 
 ```
-src/main/java/com/yeop_2ee/cert_book_review/
-├── client/
-│   └── OllamaClient.java       # Ollama REST API 클라이언트
-├── controller/
-│   ├── ReviewController.java   # 전체 라우팅 및 AI 엔드포인트
-│   ├── BookSearchController.java  # 네이버 책 검색 API 프록시
-│   └── CertSearchController.java  # Q-net 자격증 목록 API 프록시
-├── repository/
-│   └── ReviewRepository.java
-├── entity/
-│   └── Review.java
-└── dto/
-    ├── ReviewForm.java
-    ├── BookRank.java
-    ├── BookDetail.java
-    ├── CertRanking.java
-    └── CertSummary.java
-
-src/main/resources/
-├── templates/
-│   ├── layouts/
-│   │   ├── header.mustache     # 글로벌 CSS + 네비게이션
-│   │   └── footer.mustache     # Bootstrap JS + 애니메이션 스크립트
-│   └── reviews/
-│       ├── index.mustache      # 대시보드
-│       ├── show.mustache       # 리뷰 상세
-│       ├── new.mustache        # 리뷰 작성 (슬라이더)
-│       ├── edit.mustache       # 리뷰 수정 (슬라이더)
-│       ├── pin-check.mustache  # PIN 인증
-│       ├── ranking.mustache    # 교재 랭킹 + AI 분석
-│       └── stats.mustache      # 통계 분석 + AI 합격 팁
-├── application.properties
-└── data.sql
+cert-book-review/
+│
+├── src/main/java/com/yeop_2ee/cert_book_review/
+│   ├── client/
+│   │   └── OllamaClient.java           # Ollama REST API 클라이언트 (gemma3:4b, 타임아웃 3분)
+│   ├── controller/
+│   │   ├── ReviewController.java       # 전체 라우팅·AI 엔드포인트
+│   │   ├── BookSearchController.java   # 네이버 책 검색 API 프록시
+│   │   └── CertSearchController.java   # Q-net 자격증 조회 API 프록시
+│   ├── entity/
+│   │   └── Review.java                 # 리뷰 엔티티
+│   ├── repository/
+│   │   └── ReviewRepository.java       # Spring Data JPA CrudRepository
+│   └── dto/
+│       ├── ReviewForm.java
+│       ├── BookRank.java
+│       ├── BookDetail.java
+│       ├── CertRanking.java
+│       └── CertSummary.java
+│
+├── src/main/resources/
+│   ├── templates/
+│   │   ├── layouts/
+│   │   │   ├── header.mustache         # 공통 헤더 (CSS·네비게이션)
+│   │   │   └── footer.mustache         # 공통 푸터 (JS·차트·애니메이션)
+│   │   └── reviews/
+│   │       ├── index.mustache          # 대시보드
+│   │       ├── show.mustache           # 리뷰 상세
+│   │       ├── new.mustache            # 리뷰 작성
+│   │       ├── edit.mustache           # 리뷰 수정
+│   │       ├── pin-check.mustache      # PIN 인증
+│   │       ├── ranking.mustache        # 교재 랭킹 + AI 분석
+│   │       └── stats.mustache          # 통계 분석 + AI 합격 팁
+│   ├── application.properties          # 앱 설정
+│   ├── application-local.properties    # API 키 설정 (gitignore)
+│   └── data.sql                        # 초기 샘플 데이터
+│
+└── build.gradle
 ```
 
 ---
 
-## AI 엔드포인트
+## 시작하기 (로컬 개발)
 
-| 메서드 | 경로 | 설명 |
-|--------|------|------|
-| GET | `/reviews/ai/recommend-reason` | 1위 교재 추천 이유 생성 |
-| GET | `/reviews/ai/cert-summary` | 자격증 전체 리뷰 요약 |
-| GET | `/reviews/ai/tips` | 자격증 합격 팁 생성 |
+### 사전 요구사항
 
----
+| 항목 | 버전 |
+|------|------|
+| Java | 17+ |
+| Gradle | 8+ (또는 포함된 gradlew 사용) |
+| Ollama | latest (AI 기능 사용 시) |
+| 네이버 Developers 계정 | 책 검색 API 사용 시 |
+| Q-net API 키 | 자격증 자동완성 사용 시 |
 
-## 실행 방법
+### 1. 저장소 클론
 
-1. 저장소 클론
 ```bash
-git clone https://github.com/yeop-2ee/cert-book-review.git
+git clone <repository-url>
+cd cert-book-review
 ```
 
-2. API 키 설정 — `src/main/resources/application-local.properties` 파일 생성
+### 2. API 키 설정
+
+`src/main/resources/application-local.properties` 파일을 생성합니다.
+
 ```properties
 naver.client-id=YOUR_NAVER_CLIENT_ID
 naver.client-secret=YOUR_NAVER_CLIENT_SECRET
 qnet.service-key=YOUR_QNET_SERVICE_KEY
 ```
 
-3. (선택) Ollama 실행 — AI 기능 사용 시
+> **네이버 API 키**: [Naver Developers](https://developers.naver.com) → 애플리케이션 등록 → 책 검색 API 선택
+> **Q-net API 키**: [공공데이터포털](https://www.data.go.kr) → "국가기술자격 종목정보" 검색 후 활용 신청
+
+### 3. Ollama 설정 (AI 기능 사용 시)
+
 ```bash
-ollama run gemma3:4b
+# Ollama 설치 (macOS/Linux)
+curl -fsSL https://ollama.com/install.sh | sh
+
+# 모델 다운로드
+ollama pull gemma3:4b
 ```
 
-4. IntelliJ IDEA에서 프로젝트 열기 후 `CertBookReviewApplication.java` 실행
+Ollama는 설치 후 자동으로 백그라운드에서 실행됩니다 (포트 11434).
 
-5. 브라우저에서 접속
-```
-http://localhost:8080/reviews
+### 4. 애플리케이션 실행
+
+```bash
+./gradlew bootRun
 ```
 
-6. H2 콘솔 (DB 직접 확인)
-```
-http://localhost:8080/h2-console
-JDBC URL : jdbc:h2:mem:testdb
-```
+또는 IntelliJ IDEA에서 `CertBookReviewApplication.java`를 직접 실행합니다.
+
+### 5. 접속
+
+| 서비스 | URL |
+|--------|-----|
+| 애플리케이션 | http://localhost:8080/reviews |
+| H2 콘솔 | http://localhost:8080/h2-console |
+
+> H2 콘솔 접속 정보: JDBC URL `jdbc:h2:mem:testdb` / 비밀번호 없음
+
+---
+
+## 엔드포인트
+
+| 경로 | 설명 |
+|------|------|
+| `GET /reviews` | 대시보드 (통계·TOP 5·최신 후기) |
+| `GET /reviews/new` | 리뷰 작성 폼 |
+| `POST /reviews/create` | 리뷰 저장 |
+| `GET /reviews/{id}` | 리뷰 상세 조회 |
+| `GET /reviews/{id}/edit` | 리뷰 수정 폼 (PIN 인증) |
+| `GET /reviews/ranking` | 교재 랭킹 |
+| `GET /reviews/stats` | 통계 분석 |
+| `GET /reviews/ai/recommend-reason` | AI 1위 교재 추천 이유 |
+| `GET /reviews/ai/cert-summary` | AI 자격증 리뷰 요약 |
+| `GET /reviews/ai/tips` | AI 합격 팁 생성 |
+
+---
+
+## AI 기능 상세
+
+AI 기능은 [Ollama](https://ollama.com)를 통해 **로컬에서** 실행됩니다. 외부 API 비용이 발생하지 않습니다.
+
+| AI 기능 | 모델 | 설명 |
+|---------|------|------|
+| 1위 교재 추천 이유 | gemma3:4b | 리뷰 데이터 기반 추천 근거 생성 |
+| 자격증 리뷰 요약 | gemma3:4b | 전체 리뷰를 한눈에 요약 |
+| 합격 팁 | gemma3:4b | 합격자 리뷰에서 핵심 팁 추출 |
+
+다른 모델을 사용하려면 `OllamaClient.java`의 `MODEL` 상수를 변경하세요.
+Ollama가 실행되지 않은 경우 AI 기능은 오류 메시지를 반환하며, 나머지 서비스는 정상 동작합니다.
