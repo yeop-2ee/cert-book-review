@@ -5,10 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,18 +43,35 @@ public class CertSearchController {
     @GetMapping("/api/certs")
     public List<String> getCerts() {
         try {
-            // 1. 타임아웃 설정
+            // 1. 타임아웃 설정 + 인코딩 처리 (Q-net API는 application/json이지만 EUC-KR로 응답하는 경우 있음)
             RestTemplate restTemplate = new RestTemplateBuilder()
                     .connectTimeout(Duration.ofSeconds(3))
                     .readTimeout(Duration.ofSeconds(5))
                     .build();
+            restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
 
-            // 2. Q-net API 호출
+            // 2. Q-net API 호출 (바이트 단위로 받아서 직접 인코딩 처리)
             String url = "http://openapi.q-net.or.kr/api/service/rest/InquiryListNationalQualifcationSVC/getList"
                     + "?serviceKey=" + serviceKey
                     + "&numOfRows=500&pageNo=1";
 
-            String jsonResponse = restTemplate.getForObject(url, String.class);
+            ResponseEntity<byte[]> rawResponse = restTemplate.getForEntity(url, byte[].class);
+            if (rawResponse.getBody() == null) {
+                log.warn("자격증 API 응답 바디가 비어있어 기본 목록을 사용합니다.");
+                return DEFAULT_CERT_LIST;
+            }
+
+            // Content-Type에서 charset 추출, 없으면 UTF-8 시도 후 EUC-KR fallback
+            Charset charset = StandardCharsets.UTF_8;
+            if (rawResponse.getHeaders().getContentType() != null
+                    && rawResponse.getHeaders().getContentType().getCharset() != null) {
+                charset = rawResponse.getHeaders().getContentType().getCharset();
+            }
+            String jsonResponse = new String(rawResponse.getBody(), charset);
+            // EUC-KR로 잘못 디코딩된 경우 처리: JSON이 깨진 경우 EUC-KR로 재시도
+            if (!jsonResponse.contains("{") && !jsonResponse.contains("[")) {
+                jsonResponse = new String(rawResponse.getBody(), Charset.forName("EUC-KR"));
+            }
 
             // 3. JSON 파싱 (API가 JSON으로 응답)
             List<String> certNames = new ArrayList<>();

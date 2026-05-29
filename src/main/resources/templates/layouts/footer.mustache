@@ -30,6 +30,23 @@
         var bars = Array.from(document.querySelectorAll(".progress-bar[data-width]"));
         if (!bars.length) return;
         var done = new Set();
+        var DURATION = 850;
+
+        function easeOut(t) { return 1 - Math.pow(1 - t, 2); }
+
+        function animateLabel(label, target, delay) {
+            setTimeout(function() {
+                var start = null;
+                function tick(ts) {
+                    if (!start) start = ts;
+                    var elapsed = ts - start;
+                    var progress = Math.min(elapsed / DURATION, 1);
+                    label.textContent = Math.round(easeOut(progress) * target) + "%";
+                    if (progress < 1) requestAnimationFrame(tick);
+                }
+                requestAnimationFrame(tick);
+            }, delay);
+        }
 
         var obs = new IntersectionObserver(function(entries) {
             var visible = entries.filter(function(e) {
@@ -39,8 +56,15 @@
                 done.add(entry.target);
                 var bar = entry.target;
                 var w = parseFloat(bar.getAttribute("data-width")) || 0;
-                bar.style.transition = "width 0.85s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-                setTimeout(function() { bar.style.width = w + "%"; }, i * 100 + 60);
+                var delay = i * 100 + 60;
+                bar.style.transition = "width " + (DURATION / 1000) + "s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+                setTimeout(function() { bar.style.width = w + "%"; }, delay);
+
+                var row = bar.closest(".d-flex");
+                if (row) {
+                    var label = row.querySelector(".pass-rate-label");
+                    if (label) animateLabel(label, w, delay);
+                }
             });
         }, { threshold: 0.1 });
 
