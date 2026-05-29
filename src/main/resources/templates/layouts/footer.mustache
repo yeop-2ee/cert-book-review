@@ -15,11 +15,30 @@
         var cards = Array.from(document.querySelectorAll(".stat-card, .card"));
         if (!cards.length) return;
         var done = new Set();
+        var statCards = Array.from(document.querySelectorAll(".stat-card"));
+        var statLinesFired = false;
+
+        function fireStatLines(delay) {
+            if (statLinesFired) return;
+            statLinesFired = true;
+            statCards.forEach(function(card, idx) {
+                setTimeout(function() {
+                    var line = card.querySelector(".stat-line");
+                    if (line) line.style.width = "28px";
+                }, delay + idx * 130);
+            });
+        }
+
         var obs = new IntersectionObserver(function(entries) {
             var visible = entries.filter(function(e) { return e.isIntersecting && !done.has(e.target); });
             visible.forEach(function(entry, i) {
                 done.add(entry.target);
-                setTimeout(function() { entry.target.classList.add("is-visible"); }, i * 80);
+                setTimeout(function() {
+                    entry.target.classList.add("is-visible");
+                    if (statCards.length > 0 && statCards.every(function(c) { return c.classList.contains("is-visible"); })) {
+                        fireStatLines(520); // 카드 transition(0.5s) 끝난 뒤 게이지 시작
+                    }
+                }, i * 80);
             });
         }, { threshold: 0.15 });
         cards.forEach(function(c) { obs.observe(c); });
