@@ -10,7 +10,7 @@
 
 > 실제 구현 화면과 동일한 UI로 제작된 인터랙티브 플로우맵입니다. 아래 링크를 클릭하면 브라우저에서 바로 확인할 수 있습니다.
 
-**[► 화면 Flow Map 보기](https://htmlpreview.github.io/?https://github.com/yeop-2ee/cert-book-review/blob/main/cert-book-review-flowmap.html)**
+**[► 화면 Flow Map 보기](https://raw.githack.com/yeop-2ee/cert-book-review/main/cert-book-review-flowmap.html)**
 
 ---
 
