@@ -1,3 +1,13 @@
+{{! ========================================================
+    edit.mustache - 리뷰 수정 폼 페이지
+    URL: GET /reviews/{id}/edit  (PIN 인증 통과 후에만 접근 가능)
+    데이터: review (Review 엔티티 - 기존 값 pre-fill용)
+    기능:
+      - 기존 리뷰 내용을 폼에 미리 채워서 표시
+      - 수정 후 POST /reviews/update 로 전송
+      - 공부기간 슬라이더: JS로 기존 저장값에 맞는 위치로 초기화
+    주의: new.mustache와 유사하지만 자격증 자동완성은 기본 datalist만 사용 (동적 API 없음)
+======================================================== }}
 {{>layouts/header}}
 
 <div class="container mt-4 pb-5" style="max-width:680px;">
@@ -6,9 +16,11 @@
         <div class="card-body px-4 py-4">
             {{#review}}
             <form action="/reviews/update" method="post">
+                {{! id, pin을 hidden 필드로 전송 (수정 대상 리뷰 식별 + PIN 유지) }}
                 <input type="hidden" name="id" value="{{id}}">
                 <input type="hidden" name="pin" value="{{pin}}">
 
+                {{! 자격증 이름 입력 - datalist로 기본 자격증 자동완성 제공 (new.mustache의 API 방식과 달리 정적 목록 사용) }}
                 <div class="mb-3">
                     <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">자격증 이름</label>
                     <input type="text" class="form-control form-control-sm" name="certName" value="{{certName}}"
@@ -31,6 +43,7 @@
                     </datalist>
                 </div>
 
+                {{! 교재명 직접 입력 (수정 시에는 네이버 책 검색 드롭다운 없음) }}
                 <div class="mb-3">
                     <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">사용 교재</label>
                     <input type="text" class="form-control form-control-sm" name="bookTitle" value="{{bookTitle}}"
@@ -55,13 +68,17 @@
                     </div>
                 </div>
 
+                {{! 공부기간 슬라이더: 표시용(periodDisplay)과 실제 전송값(studyPeriodHidden hidden) 분리 }}
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <label class="form-label mb-0" style="font-size:0.82rem; color:#6b7280; font-weight:600;">공부 기간</label>
+                        {{! 현재 선택된 기간 텍스트 표시 (JS에서 동적으로 업데이트) }}
                         <span id="periodDisplay" class="period-badge">{{studyPeriod}}</span>
                     </div>
                     <div class="period-slider-wrap">
+                        {{! range 슬라이더: 0~12 인덱스 → PERIODS 배열 13개 항목과 매핑 }}
                         <input type="range" id="periodSlider" class="period-slider" min="0" max="12" value="3">
+                        {{! 슬라이더 아래 눈금 레이블 (절대 위치로 배치) }}
                         <div style="position:relative; height:18px; margin-top:6px;">
                             <span style="position:absolute; left:10px;                       transform:translateX(-50%); font-size:0.69rem; color:#94a3b8; white-space:nowrap;">1주</span>
                             <span style="position:absolute; left:calc(25% + 5px);            transform:translateX(-50%); font-size:0.69rem; color:#94a3b8; white-space:nowrap;">1개월</span>
@@ -71,6 +88,7 @@
                             <span style="position:absolute; left:calc(100% - 10px);          transform:translateX(-50%); font-size:0.69rem; color:#94a3b8; white-space:nowrap;">2년+</span>
                         </div>
                     </div>
+                    {{! 실제 폼 전송 값: JS가 슬라이더 인덱스를 PERIODS 텍스트로 변환해 여기에 저장 }}
                     <input type="hidden" name="studyPeriod" id="studyPeriodHidden" value="{{studyPeriod}}">
                 </div>
 
@@ -91,25 +109,34 @@
 </div>
 
 <script>
+    // 슬라이더 인덱스(0~12)와 1:1 대응하는 공부기간 텍스트 배열
     var PERIODS = ["1주","2주","3주","1개월","2개월","3개월","4개월","5개월","6개월","9개월","1년","1년 6개월","2년 이상"];
     var periodSlider  = document.getElementById("periodSlider");
     var periodDisplay = document.getElementById("periodDisplay");
     var periodHidden  = document.getElementById("studyPeriodHidden");
 
+    /**
+     * 슬라이더 인덱스에 맞춰 UI와 hidden 값을 업데이트.
+     * 슬라이더 채워진 부분: 인디고 색상(#6366f1)
+     * 미채워진 부분: 연회색(#e2e8f0)
+     */
     function updateSlider(idx) {
-        var pct = (idx / periodSlider.max) * 100;
+        var pct = (idx / periodSlider.max) * 100;  // 전체 대비 진행률 (%)
+        // CSS linear-gradient로 슬라이더 채우기 효과 구현
         periodSlider.style.background =
             "linear-gradient(to right,#6366f1 0%,#6366f1 " + pct + "%,#e2e8f0 " + pct + "%,#e2e8f0 100%)";
-        periodDisplay.textContent = PERIODS[idx];
-        periodHidden.value = PERIODS[idx];
+        periodDisplay.textContent = PERIODS[idx];   // 표시 뱃지 텍스트 업데이트
+        periodHidden.value = PERIODS[idx];           // 폼 전송값 업데이트
     }
 
-    // 기존 저장된 값으로 슬라이더 초기 위치 설정
+    // 페이지 로드 시: DB에 저장된 기존 공부기간 값으로 슬라이더 초기 위치 설정
+    // PERIODS에 없는 값이면 기본값 3(="1개월") 사용
     var initIdx = PERIODS.indexOf(periodHidden.value.trim());
     if (initIdx === -1) initIdx = 3;
     periodSlider.value = initIdx;
     updateSlider(initIdx);
 
+    // 슬라이더 드래그 시 실시간 업데이트
     periodSlider.addEventListener("input", function() { updateSlider(+this.value); });
 </script>
 

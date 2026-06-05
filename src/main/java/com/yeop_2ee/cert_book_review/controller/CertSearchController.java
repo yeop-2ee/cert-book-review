@@ -18,14 +18,34 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Q-net(한국산업인력공단) 국가자격증 목록 API 프록시 컨트롤러.
+ *
+ * 역할: 리뷰 작성 페이지에서 자격증 이름 자동완성(datalist)에 사용할
+ *       국가자격증 목록을 공공데이터포털 Q-net API로부터 가져옴.
+ *
+ * 사용 흐름:
+ *  브라우저 → GET /api/certs → 이 컨트롤러 → Q-net 공공API → 자격증 이름 목록 반환
+ *
+ * 폴백(Fallback) 전략:
+ *  API 키 미설정, 타임아웃, 서버 오류 등 모든 예외 상황에서
+ *  DEFAULT_CERT_LIST(41개 하드코딩 목록)를 반환해 서비스 연속성 보장.
+ *
+ * 인코딩 이슈:
+ *  Q-net API가 EUC-KR로 응답하는 경우가 있어 바이트 배열로 받아 직접 디코딩 처리.
+ */
 @Slf4j
 @RestController
 public class CertSearchController {
 
+    /** application.properties에서 주입되는 Q-net API 서비스 키 (공공데이터포털에서 발급) */
     @Value("${qnet.service-key}")
     private String serviceKey;
 
-    // API 연결 실패 시 사용할 기본 자격증 목록
+    /**
+     * API 연결 실패 시 사용할 기본 자격증 목록 (41개).
+     * IT, 전기, 건축, 의료, 경영 분야의 주요 국가자격증 포함.
+     */
     private static final List<String> DEFAULT_CERT_LIST = Arrays.asList(
             "정보처리기사", "정보처리산업기사", "정보보안기사", "정보보안산업기사",
             "컴퓨터활용능력 1급", "컴퓨터활용능력 2급", "워드프로세서",
@@ -40,20 +60,31 @@ public class CertSearchController {
             "공인중개사", "주택관리사", "세무사", "공인회계사", "행정사"
     );
 
+    /**
+     * 국가자격증 이름 목록을 반환.
+     *
+     * GET /api/certs
+     *
+     * 성공 시: Q-net API에서 받은 자격증 이름 목록 (최대 500건)
+     * 실패 시: DEFAULT_CERT_LIST 반환
+     *
+     * @return 자격증 이름 문자열 목록
+     */
     @GetMapping("/api/certs")
     public List<String> getCerts() {
         try {
-            // 1. 타임아웃 설정 + 인코딩 처리 (Q-net API는 application/json이지만 EUC-KR로 응답하는 경우 있음)
+            // 1. 짧은 타임아웃으로 RestTemplate 생성 (페이지 렌더링 지연 최소화)
             RestTemplate restTemplate = new RestTemplateBuilder()
-                    .connectTimeout(Duration.ofSeconds(3))
-                    .readTimeout(Duration.ofSeconds(5))
+                    .connectTimeout(Duration.ofSeconds(3))  // 연결 타임아웃: 3초
+                    .readTimeout(Duration.ofSeconds(5))     // 응답 타임아웃: 5초
                     .build();
+            // UTF-8 메시지 컨버터를 최우선 순위로 등록
             restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
 
-            // 2. Q-net API 호출 (바이트 단위로 받아서 직접 인코딩 처리)
+            // 2. Q-net 공공API 호출 (응답을 byte[]로 받아 인코딩 직접 처리)
             String url = "http://openapi.q-net.or.kr/api/service/rest/InquiryListNationalQualifcationSVC/getList"
                     + "?serviceKey=" + serviceKey
-                    + "&numOfRows=500&pageNo=1";
+                    + "&numOfRows=500&pageNo=1";  // 한 번에 최대 500개 요청
 
             ResponseEntity<byte[]> rawResponse = restTemplate.getForEntity(url, byte[].class);
             if (rawResponse.getBody() == null) {
@@ -61,26 +92,28 @@ public class CertSearchController {
                 return DEFAULT_CERT_LIST;
             }
 
-            // Content-Type에서 charset 추출, 없으면 UTF-8 시도 후 EUC-KR fallback
+            // 3. 응답 인코딩 처리: Content-Type에서 charset 추출, 없으면 UTF-8 시도
             Charset charset = StandardCharsets.UTF_8;
             if (rawResponse.getHeaders().getContentType() != null
                     && rawResponse.getHeaders().getContentType().getCharset() != null) {
                 charset = rawResponse.getHeaders().getContentType().getCharset();
             }
             String jsonResponse = new String(rawResponse.getBody(), charset);
-            // EUC-KR로 잘못 디코딩된 경우 처리: JSON이 깨진 경우 EUC-KR로 재시도
+
+            // UTF-8로 디코딩했는데 JSON 구조 기호({, [)가 없으면 EUC-KR로 재시도
             if (!jsonResponse.contains("{") && !jsonResponse.contains("[")) {
                 jsonResponse = new String(rawResponse.getBody(), Charset.forName("EUC-KR"));
             }
 
-            // 3. JSON 파싱 (API가 JSON으로 응답)
+            // 4. JSON 파싱: response > body > items > item[] 구조에서 자격증명 추출
             List<String> certNames = new ArrayList<>();
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(jsonResponse);
+            // Q-net API 응답 JSON 경로: response.body.items.item[].jmfldnm (자격증 종목명)
             JsonNode items = root.path("response").path("body").path("items").path("item");
 
             for (JsonNode item : items) {
-                String name = item.path("jmfldnm").asText().trim();
+                String name = item.path("jmfldnm").asText().trim();  // "jmfldnm" = 자격증 종목명 필드
                 if (!name.isEmpty()) {
                     certNames.add(name);
                 }
@@ -94,6 +127,7 @@ public class CertSearchController {
             return certNames;
 
         } catch (Exception e) {
+            // 타임아웃, 네트워크 오류, JSON 파싱 실패 등 모든 예외 → 기본 목록으로 폴백
             log.warn("자격증 API 연결 실패 - 기본 목록 사용: {}", e.getMessage());
             return DEFAULT_CERT_LIST;
         }

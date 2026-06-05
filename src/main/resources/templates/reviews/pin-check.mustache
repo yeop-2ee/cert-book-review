@@ -1,3 +1,16 @@
+{{! ========================================================
+    pin-check.mustache - PIN 인증 페이지
+    URL: GET /reviews/{id}/pin-check?action=edit|delete
+    데이터:
+      - id       : 인증 대상 리뷰 ID
+      - action   : "edit"(수정) 또는 "delete"(삭제)
+      - errorMsg : PIN 불일치 시 Flash Attribute로 전달된 오류 메시지
+    기능:
+      - 리뷰 작성 시 등록한 4자리 PIN 입력 폼 표시
+      - PIN 불일치 시 오류 메시지 표시 (빨간 박스)
+      - 확인 → POST /reviews/{id}/pin-check 로 전송
+      - 취소 → 해당 리뷰 상세 페이지로 돌아감
+======================================================== }}
 {{>layouts/header}}
 
 <div class="container mt-5 pb-5" style="max-width:400px;">
@@ -8,16 +21,20 @@
                 리뷰 작성 시 등록한 4자리 PIN을 입력해주세요.
             </p>
 
+            {{! PIN 불일치 시 오류 메시지 표시 (errorMsg가 있을 때만 렌더링) }}
             {{#errorMsg}}
             <div class="mb-3 px-3 py-2" style="background:#fff0f2; border-radius:8px; color:#dc2626; font-size:0.85rem; border:1px solid #fecaca;">
                 {{errorMsg}}
             </div>
             {{/errorMsg}}
 
+            {{! PIN 입력 폼: hidden 필드로 action(edit/delete) 함께 전송 }}
             <form action="/reviews/{{id}}/pin-check" method="post">
+                {{! action 값을 hidden 필드로 서버에 전달 (수정/삭제 구분용) }}
                 <input type="hidden" name="action" value="{{action}}">
                 <div class="mb-4">
                     <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">PIN 번호</label>
+                    {{! type="password": 입력값 마스킹 / pattern="[0-9]{4}": 4자리 숫자만 허용 (HTML 클라이언트 검증) }}
                     <input type="password" class="form-control" name="pin"
                            maxlength="4" pattern="[0-9]{4}" autofocus
                            placeholder="4자리 숫자"

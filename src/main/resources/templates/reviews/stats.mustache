@@ -1,3 +1,21 @@
+{{! ========================================================
+    stats.mustache - 통계 분석 페이지
+    URL: GET /reviews/stats?certName=자격증명  (certName 없으면 전체 통계)
+    데이터 (ReviewController.stats()에서 전달):
+      - certName      : 선택된 자격증명 (빈 문자열이면 전체)
+      - certNames     : 드롭다운용 자격증 목록
+      - hasCertName   : 자격증 선택 여부 (boolean)
+      - hasData       : 리뷰 데이터 존재 여부 (boolean)
+      - diffLow/Mid/High : 난이도 분포 카운트 (Chart.js 도넛 차트용)
+      - pr0~pr3       : 공부기간 구간별 합격률 % (Chart.js 막대 차트용)
+      - pc0~pc3       : 공부기간 구간별 총 리뷰 수 (상세 테이블용)
+    기능:
+      1. 자격증 선택 폼 (GET /reviews/stats 재요청)
+      2. AI 합격 팁: 자격증 선택 시 자동 로드 (GET /reviews/ai/tips)
+      3. 체감 난이도 분포 차트 (도넛, Chart.js + chartjs-plugin-datalabels)
+      4. 공부기간별 합격률 차트 (가로 막대, Chart.js)
+      5. 공부기간별 상세 테이블 (progress bar 포함)
+======================================================== }}
 {{>layouts/header}}
 
 <div class="container mt-4 pb-5" style="max-width:800px;">
@@ -7,7 +25,9 @@
         <a href="/reviews" class="btn btn-soft btn-sm" style="font-size:0.8rem;">대시보드로</a>
     </div>
 
-    <!-- 자격증 선택 -->
+    {{! 자격증 선택 폼
+        GET 방식: certName 파라미터를 URL에 붙여서 같은 페이지 재로드
+        certDatalist: 서버에서 전달한 certNames 목록으로 자동완성 }}
     <div class="card mb-4">
         <div style="padding:0.85rem 1.25rem;">
             <form method="get" action="/reviews/stats" class="row g-2 align-items-end">
@@ -17,6 +37,8 @@
                            value="{{certName}}" list="certDatalist"
                            placeholder="자격증을 선택하거나 직접 입력 (미선택 시 전체)"
                            autocomplete="off">
+                    {{! certNames 리스트를 datalist option으로 렌더링
+                        {{.}}: 현재 반복 중인 항목 자체 (String 리스트이므로 .으로 값 참조) }}
                     <datalist id="certDatalist">
                         {{#certNames}}
                         <option value="{{.}}">
@@ -26,17 +48,20 @@
                 <div class="col-auto">
                     <button type="submit" class="btn btn-primary btn-sm px-4">조회</button>
                 </div>
+                {{! "전체 보기" 버튼: certName이 있을 때만 표시 }}
                 {{#certName}}
                 <div class="col-auto">
                     <a href="/reviews/stats" class="btn btn-soft btn-sm">전체 보기</a>
                 </div>
                 {{/certName}}
             </form>
+            {{! 선택 자격증 표시 (certName 있을 때) }}
             {{#certName}}
             <div class="mt-2" style="font-size:0.78rem; color:#6366f1; font-weight:500;">
                 {{certName}} · 총 {{totalReviewsFmt}}개 리뷰 기준
             </div>
             {{/certName}}
+            {{! 전체 통계 표시 (certName 없을 때) }}
             {{^certName}}
             <div class="mt-2" style="font-size:0.78rem; color:#94a3b8;">
                 전체 · 총 {{totalReviewsFmt}}개 리뷰 기준
@@ -45,23 +70,29 @@
         </div>
     </div>
 
+    {{! AI 합격 팁 카드: hasCertName=true && hasData=true 일 때만 렌더링
+        data-cert: JS에서 certName 값 읽기 위한 속성
+        페이지 로드 시 JS가 자동으로 GET /reviews/ai/tips 호출 }}
     {{#hasCertName}}
     {{#hasData}}
-    <!-- AI 합격 팁 (자격증 선택 시 자동 생성) -->
     <div class="card mb-4" id="aiTipsCard" data-cert="{{certName}}">
         <div class="card-header d-flex align-items-center" style="gap:0.4rem;">
             <span style="color:#6366f1;">✦</span>
             <span>AI 합격 팁</span>
+            {{! API 응답 완료 후 JS가 display:inline-block으로 변경 }}
             <span id="aiTipsStatus" class="ms-auto badge badge-indigo" style="font-size:0.7rem; display:none;">분석 완료</span>
         </div>
         <div style="padding:1rem 1.25rem;">
+            {{! 로딩 중 스피너 (API 응답 후 display:none으로 숨김) }}
             <div id="aiTipsLoading" style="text-align:center; padding:0.8rem 0; font-size:0.84rem; color:#6366f1;">
                 <span class="spinner-border spinner-border-sm me-1" role="status"></span>
                 AI가 합격 팁을 분석 중입니다... (시간이 걸릴 수 있습니다)
             </div>
+            {{! API 응답 후 display:block으로 표시, aiTipsText에 AI 텍스트 삽입 }}
             <div id="aiTipsResult" style="display:none;">
                 <div style="background:#f5f3ff; border:1px solid #e0e7ff; border-radius:10px; padding:1rem 1.15rem;">
                     <div style="font-size:0.7rem; font-weight:700; color:#6366f1; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:0.7rem;">AI 분석 결과</div>
+                    {{! textContent로 삽입 (innerHTML XSS 방지) }}
                     <div id="aiTipsText" style="font-size:0.875rem; color:#374151; line-height:1.85; white-space:pre-wrap;"></div>
                 </div>
             </div>
@@ -70,9 +101,10 @@
     {{/hasData}}
     {{/hasCertName}}
 
+    {{! 데이터 있을 때: 차트 2개 + 상세 테이블 }}
     {{#hasData}}
-    <!-- 차트 2개 -->
     <div class="row g-3 mb-4">
+        {{! 좌측: 난이도 도넛 차트 (Chart.js, canvas ID: diffChart) }}
         <div class="col-md-5">
             <div class="card h-100">
                 <div class="card-header">체감 난이도 분포</div>
@@ -81,6 +113,7 @@
                 </div>
             </div>
         </div>
+        {{! 우측: 공부기간별 합격률 가로 막대 차트 (canvas ID: periodChart) }}
         <div class="col-md-7">
             <div class="card h-100">
                 <div class="card-header">공부 기간별 합격률</div>
@@ -91,7 +124,9 @@
         </div>
     </div>
 
-    <!-- 공부 기간별 상세 테이블 -->
+    {{! 공부기간별 상세 테이블
+        pr0~pr3: 각 구간 합격률 (progress bar width %)
+        pc0~pc3: 각 구간 총 리뷰 수 }}
     <div class="card">
         <div class="card-header">공부 기간별 상세 현황</div>
         <table class="table mb-0">
@@ -103,6 +138,9 @@
                 </tr>
             </thead>
             <tbody>
+                {{! 각 행: pc0~pc3 = 리뷰 수, pr0~pr3 = 합격률 %
+                    data-width: footer.js에서 애니메이션으로 0→목표값 채움
+                    pass-rate-label: 숫자도 동시에 카운팅 애니메이션 }}
                 <tr>
                     <td>1개월 미만</td>
                     <td class="text-center" style="color:#94a3b8;">{{pc0}}</td>
@@ -156,6 +194,7 @@
     </div>
     {{/hasData}}
 
+    {{! 데이터 없을 때 빈 상태 안내 메시지 }}
     {{^hasData}}
     <div class="card">
         <div class="card-body text-center py-5" style="color:#94a3b8; font-size:0.85rem;">
@@ -166,19 +205,26 @@
 
 </div>
 
+{{! Chart.js 라이브러리 및 데이터 레이블 플러그인 CDN 로드 }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script>
+    {{! hasData=true일 때만 차트 초기화 코드 실행 (canvas 요소가 DOM에 없으면 오류 발생) }}
     {{#hasData}}
-    // 난이도 분포 도넛 차트
+    /**
+     * 체감 난이도 분포 도넛 차트.
+     * diffLow/diffMid/diffHigh: 서버에서 Mustache로 직접 삽입된 숫자값
+     * ChartDataLabels 플러그인: 도넛 조각에 퍼센트 레이블 표시
+     * cutout: "65%": 도넛 두께 설정 (숫자가 클수록 얇아짐)
+     */
     new Chart(document.getElementById("diffChart"), {
         type: "doughnut",
         plugins: [ChartDataLabels],
         data: {
             labels: ["하", "중", "상"],
             datasets: [{
-                data: [{{diffLow}}, {{diffMid}}, {{diffHigh}}],
-                backgroundColor: ["#bbf7d0", "#bfdbfe", "#fecaca"],
+                data: [{{diffLow}}, {{diffMid}}, {{diffHigh}}],  // 서버 렌더링 데이터
+                backgroundColor: ["#bbf7d0", "#bfdbfe", "#fecaca"],  // 하=초록, 중=파랑, 상=빨강
                 borderColor: ["#86efac", "#93c5fd", "#fca5a5"],
                 borderWidth: 1
             }]
@@ -187,6 +233,7 @@
             plugins: {
                 legend: { position: "bottom", labels: { font: { size: 12 }, padding: 14 } },
                 datalabels: {
+                    // 5% 미만 조각에는 레이블 숨김 (겹침 방지)
                     formatter: function(value, context) {
                         var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
                         var pct = total > 0 ? Math.round(value / total * 100) : 0;
@@ -197,6 +244,7 @@
                 },
                 tooltip: {
                     callbacks: {
+                        // 툴팁: "하: 30개 (40%)" 형태로 표시
                         label: function(context) {
                             var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
                             var val = context.parsed;
@@ -206,18 +254,22 @@
                     }
                 }
             },
-            cutout: "65%"
+            cutout: "65%"  // 도넛 중앙 빈 공간 크기 (65% = 상대적으로 얇은 도넛)
         }
     });
 
-    // 공부 기간별 합격률 가로 바 차트
+    /**
+     * 공부 기간별 합격률 가로 막대 차트.
+     * indexAxis: "y": Y축이 레이블, X축이 수치 (가로 막대)
+     * pr0~pr3: 서버에서 Mustache로 삽입된 각 구간 합격률
+     */
     new Chart(document.getElementById("periodChart"), {
         type: "bar",
         data: {
             labels: ["1개월 미만", "1~3개월", "3~6개월", "6개월 이상"],
             datasets: [{
                 label: "합격률 (%)",
-                data: [{{pr0}}, {{pr1}}, {{pr2}}, {{pr3}}],
+                data: [{{pr0}}, {{pr1}}, {{pr2}}, {{pr3}}],  // 서버 렌더링 데이터
                 backgroundColor: "#c7d2fe",
                 borderColor: "#818cf8",
                 borderWidth: 1,
@@ -225,24 +277,29 @@
             }]
         },
         options: {
-            indexAxis: "y",
+            indexAxis: "y",  // 가로 막대 차트
             scales: {
                 x: {
-                    min: 0, max: 100,
+                    min: 0, max: 100,  // X축 범위: 0~100%
                     ticks: { callback: function(v) { return v + "%"; }, font: { size: 11 } },
                     grid: { color: "#f1f5f9" }
                 },
                 y: { ticks: { font: { size: 11 } }, grid: { display: false } }
             },
-            plugins: { legend: { display: false } }
+            plugins: { legend: { display: false } }  // 범례 숨김 (레이블이 명확해서 불필요)
         }
     });
     {{/hasData}}
 
-    // AI 합격 팁 자동 생성 (자격증 선택 시)
+    /**
+     * AI 합격 팁 자동 로드.
+     * 자격증 선택 시 aiTipsCard 요소가 DOM에 존재하므로 자동 실행.
+     * GET /reviews/ai/tips?certName=자격증명 → { result: "팁 텍스트" }
+     * textContent로 삽입 (innerHTML 사용 안 함 - XSS 방지)
+     */
     var aiCard = document.getElementById('aiTipsCard');
     if (aiCard) {
-        var certName = aiCard.getAttribute('data-cert');
+        var certName = aiCard.getAttribute('data-cert');  // data-cert 속성에서 자격증명 추출
         var tipsLoading = document.getElementById('aiTipsLoading');
         var tipsResult  = document.getElementById('aiTipsResult');
         var tipsText    = document.getElementById('aiTipsText');
@@ -250,16 +307,17 @@
 
         fetch('/reviews/ai/tips?certName=' + encodeURIComponent(certName))
             .then(function(r) {
+                // HTTP 오류 시 에러로 처리 (Ollama 미실행 등)
                 if (!r.ok) {
                     return r.text().then(function(t) { throw new Error('HTTP ' + r.status + ': ' + t.substring(0, 200)); });
                 }
                 return r.json();
             })
             .then(function(data) {
-                tipsLoading.style.display = 'none';
-                tipsResult.style.display  = 'block';
+                tipsLoading.style.display = 'none';  // 스피너 숨김
+                tipsResult.style.display  = 'block'; // 결과 표시
                 tipsText.textContent = data.result || (data.error || '결과를 가져오지 못했습니다.');
-                if (tipsBadge) { tipsBadge.style.display = 'inline-block'; }
+                if (tipsBadge) { tipsBadge.style.display = 'inline-block'; }  // "분석 완료" 뱃지
             })
             .catch(function(err) {
                 tipsLoading.style.display = 'none';

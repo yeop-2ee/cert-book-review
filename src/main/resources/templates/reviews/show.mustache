@@ -1,3 +1,12 @@
+{{! ========================================================
+    show.mustache - 리뷰 상세 조회 페이지
+    URL: GET /reviews/{id}
+    데이터: review (Review 엔티티)
+    기능:
+      - 리뷰의 모든 필드(자격증, 교재, 난이도, 합격여부, 공부기간, 내용) 표 형태로 표시
+      - 수정/삭제 버튼 (PIN 인증 페이지로 이동)
+      - 해당 자격증의 통계·랭킹 페이지 바로가기 링크
+======================================================== }}
 {{>layouts/header}}
 
 <div class="container mt-4 pb-5" style="max-width:680px;">
@@ -7,7 +16,9 @@
             <a href="/reviews" class="btn btn-soft btn-sm" style="font-size:0.8rem;">목록으로</a>
         </div>
         <div class="card-body px-4 py-3">
+            {{! {{#review}} ... {{/review}}: review 객체가 null이 아닐 때만 렌더링 }}
             {{#review}}
+            {{! 리뷰 정보 테이블 }}
             <table class="table mb-4">
                 <tbody>
                     <tr>
@@ -37,12 +48,13 @@
                 </tbody>
             </table>
 
+            {{! 수정/삭제 버튼: 클릭 시 PIN 인증 페이지로 이동 (action 파라미터로 수정/삭제 구분) }}
             <div class="d-flex gap-2 mb-3">
                 <a href="/reviews/{{id}}/pin-check?action=edit" class="btn btn-sm btn-primary">수정</a>
                 <a href="/reviews/{{id}}/pin-check?action=delete" class="btn btn-sm" style="background:#fee2e2; border:1px solid #fecaca; color:#dc2626; font-size:0.84rem;">삭제</a>
             </div>
 
-            <!-- 이 자격증 바로가기 -->
+            {{! 이 자격증 관련 페이지 바로가기 (certName을 URL 파라미터로 전달) }}
             <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:0.9rem 1.1rem;">
                 <div class="section-label mb-2">이 자격증 더 알아보기</div>
                 <div class="d-flex gap-2 flex-wrap">

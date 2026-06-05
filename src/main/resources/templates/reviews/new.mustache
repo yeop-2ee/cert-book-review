@@ -1,3 +1,13 @@
+{{! ========================================================
+    new.mustache - 리뷰 작성 폼 페이지
+    URL: GET /reviews/new → POST /reviews/create
+    데이터: 없음 (서버에서 전달하는 모델 없음, 모든 데이터는 JS로 동적 로드)
+    기능:
+      1. 자격증 이름 입력: GET /api/certs 로 Q-net 자격증 목록 동적 로드 → datalist 자동완성
+      2. 교재 검색: GET /api/books?query=... 로 네이버 책 검색 → 드롭다운 선택
+      3. 공부기간 슬라이더: 1주~2년+ 13단계 선택
+      4. PIN 번호: 4자리 숫자, 추후 수정/삭제 인증에 사용
+======================================================== }}
 {{>layouts/header}}
 
 <div class="container mt-4 pb-5" style="max-width:680px;">
@@ -6,13 +16,19 @@
         <div class="card-body px-4 py-4">
             <form action="/reviews/create" method="post">
 
+                {{! 자격증 이름 입력 필드
+                    - 초기: disabled 상태 + 로딩 스피너
+                    - /api/certs 응답 후: datalist에 옵션 채우고 활성화
+                    - list="certList": datalist와 연결해 자동완성 제공 }}
                 <div class="mb-3">
                     <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">자격증 이름</label>
                     <input type="text" class="form-control form-control-sm" name="certName" id="certNameInput"
                            list="certList" placeholder="자격증 목록 불러오는 중..."
                            autocomplete="off" disabled
                            style="border-color:#e5e7eb; border-radius:8px; background:#f8fafc;">
+                    {{! datalist: JS로 동적으로 option 추가됨 (서버가 렌더링하지 않음) }}
                     <datalist id="certList"></datalist>
+                    {{! 로딩 상태 표시 영역: API 완료 시 JS로 텍스트 교체 }}
                     <div class="mt-1" id="certLoadMsg" style="font-size:0.77rem; color:#94a3b8;">
                         <span id="certLoadSpinner"
                               style="display:inline-block; width:10px; height:10px; border:2px solid #c7d2fe;
@@ -25,6 +41,10 @@
                     </style>
                 </div>
 
+                {{! 교재 검색 영역
+                    - bookSearch: 검색어 입력 (검색 버튼 또는 Enter로 /api/books 호출)
+                    - bookResults: 검색 결과 드롭다운 (클릭 시 bookTitleInput에 자동 입력)
+                    - bookTitleInput: 실제 폼 전송값 (name="bookTitle") }}
                 <div class="mb-3">
                     <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">사용 교재</label>
                     <div class="input-group input-group-sm mb-1">
@@ -33,15 +53,19 @@
                         <button type="button" class="btn btn-sm" onclick="searchBook()"
                                 style="background:#f3f4f6; border:1px solid #e5e7eb; color:#6b7280; border-radius:0 8px 8px 0;">검색</button>
                     </div>
+                    {{! 검색 결과 드롭다운 (JS로 동적 생성, 선택 시 숨김) }}
                     <div id="bookResults"></div>
+                    {{! 선택된 교재명이 저장되는 실제 입력 필드 (직접 입력도 가능) }}
                     <input type="text" class="form-control form-control-sm mt-2" id="bookTitleInput" name="bookTitle"
                            placeholder="교재명 (검색 후 선택하거나 직접 입력)"
                            style="border-color:#e5e7eb; border-radius:8px;">
                 </div>
 
+                {{! 난이도/합격여부 2열 레이아웃 }}
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">체감 난이도</label>
+                        {{! 기본값: 중 (selected) }}
                         <select class="form-select form-select-sm" name="difficulty" style="border-color:#e5e7eb; border-radius:8px;">
                             <option value="하">하</option>
                             <option value="중" selected>중</option>
@@ -57,14 +81,20 @@
                     </div>
                 </div>
 
+                {{! 공부기간 슬라이더
+                    - periodDisplay: 현재 선택값 표시 (JS 업데이트)
+                    - periodSlider: range 입력 (인덱스 0~12)
+                    - studyPeriodHidden: 실제 폼 전송값 (PERIODS 텍스트) }}
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <label class="form-label mb-0" style="font-size:0.82rem; color:#6b7280; font-weight:600;">공부 기간</label>
                         <span id="periodDisplay" class="period-badge">1개월</span>
                     </div>
                     <div class="period-slider-wrap">
+                        {{! range 슬라이더: 0~12 인덱스 → PERIODS[13] 배열 참조 }}
                         <input type="range" id="periodSlider" class="period-slider" min="0" max="12" value="3">
-                        <!-- 라벨 위치: left = N/12 × (100% - 20px) + 10px, translateX(-50%) 로 중앙 정렬 -->
+                        {{! 슬라이더 눈금 레이블: 절대 위치 배치
+                            라벨 위치 계산: left = N/12 × (100% - 20px) + 10px, translateX(-50%) 로 중앙 정렬 }}
                         <div style="position:relative; height:18px; margin-top:6px;">
                             <span style="position:absolute; left:10px;                       transform:translateX(-50%); font-size:0.69rem; color:#94a3b8; white-space:nowrap;">1주</span>
                             <span style="position:absolute; left:calc(25% + 5px);            transform:translateX(-50%); font-size:0.69rem; color:#94a3b8; white-space:nowrap;">1개월</span>
@@ -74,6 +104,7 @@
                             <span style="position:absolute; left:calc(100% - 10px);          transform:translateX(-50%); font-size:0.69rem; color:#94a3b8; white-space:nowrap;">2년+</span>
                         </div>
                     </div>
+                    {{! hidden 입력: JS가 슬라이더 값 → PERIODS 텍스트로 변환해 저장 }}
                     <input type="hidden" name="studyPeriod" id="studyPeriodHidden" value="1개월">
                 </div>
 
@@ -84,6 +115,7 @@
                               style="border-color:#e5e7eb; border-radius:8px; line-height:1.7;"></textarea>
                 </div>
 
+                {{! PIN 번호 입력 (4자리 숫자, 로그인 없는 수정/삭제 인증용) }}
                 <div class="mb-4">
                     <label class="form-label" style="font-size:0.82rem; color:#6b7280; font-weight:600;">PIN 번호 (4자리 숫자)</label>
                     <input type="password" class="form-control form-control-sm" name="pin"
@@ -103,24 +135,31 @@
 
 <script>
     // ── 공부 기간 슬라이더 ────────────────────────────────
+    // 인덱스 0~12에 대응하는 13단계 공부기간 텍스트 배열
     var PERIODS = ["1주","2주","3주","1개월","2개월","3개월","4개월","5개월","6개월","9개월","1년","1년 6개월","2년 이상"];
     var periodSlider  = document.getElementById("periodSlider");
     var periodDisplay = document.getElementById("periodDisplay");
     var periodHidden  = document.getElementById("studyPeriodHidden");
 
+    /**
+     * 슬라이더 인덱스 변경 시 UI와 hidden 값 업데이트.
+     * 채워진 부분: 인디고(#6366f1), 미채워진 부분: 연회색(#e2e8f0)
+     */
     function updateSlider(idx) {
         var pct = (idx / periodSlider.max) * 100;
         periodSlider.style.background =
             "linear-gradient(to right,#6366f1 0%,#6366f1 " + pct + "%,#e2e8f0 " + pct + "%,#e2e8f0 100%)";
-        periodDisplay.textContent = PERIODS[idx];
-        periodHidden.value = PERIODS[idx];
+        periodDisplay.textContent = PERIODS[idx];  // 표시 뱃지 업데이트
+        periodHidden.value = PERIODS[idx];          // 폼 전송값 업데이트
     }
-    updateSlider(3);
+    updateSlider(3);  // 초기값: 인덱스 3 = "1개월"
     periodSlider.addEventListener("input", function() { updateSlider(+this.value); });
 
+    // ── 자격증 자동완성 (GET /api/certs) ──────────────────
     var certInput = document.getElementById("certNameInput");
     var certLoadMsg = document.getElementById("certLoadMsg");
 
+    /** API 성공 시: 입력 필드 활성화 + 자격증 수 표시 */
     function enableCertInput(count) {
         certInput.disabled = false;
         certInput.placeholder = "자격증을 선택하거나 직접 입력하세요";
@@ -128,6 +167,7 @@
         certLoadMsg.innerHTML = "총 <strong style='color:#6366f1;'>" + count + "개</strong> 자격증 검색 가능";
     }
 
+    /** API 실패 시: 입력 필드만 활성화하고 직접 입력 유도 */
     function failCertInput() {
         certInput.disabled = false;
         certInput.placeholder = "직접 입력해주세요";
@@ -135,6 +175,7 @@
         certLoadMsg.textContent = "자격증 목록을 불러오지 못했습니다. 직접 입력해주세요.";
     }
 
+    // 페이지 로드 시 자격증 목록 비동기 로드 → datalist에 option 동적 추가
     fetch("/api/certs")
         .then(function(response) { return response.json(); })
         .then(function(certNames) {
@@ -149,6 +190,13 @@
         })
         .catch(function() { failCertInput(); });
 
+    // ── 교재 검색 (GET /api/books) ────────────────────────
+
+    /**
+     * 책 검색 결과를 드롭다운으로 렌더링.
+     * 각 항목 클릭 시 bookTitleInput에 제목 자동 입력 후 드롭다운 닫힘.
+     * replace(/<[^>]*>/g, ""): 네이버 API 응답의 <b>태그 제거
+     */
     function renderBookResults(data) {
         var resultsDiv = document.getElementById("bookResults");
         resultsDiv.innerHTML = "";
@@ -161,6 +209,7 @@
 
         resultsDiv.style.display = "block";
         data.items.forEach(function(item) {
+            // 네이버 API 응답에 포함된 HTML 태그 제거 (예: <b>정보처리기사</b> → 정보처리기사)
             var title = item.title.replace(/<[^>]*>/g, "");
             var author = item.author.replace(/<[^>]*>/g, "");
             var publisher = item.publisher || "";
@@ -169,6 +218,7 @@
             div.className = "book-result-item";
             div.innerHTML = '<strong>' + title + '</strong><br>'
                 + '<span style="color:#9ca3af;">' + author + (publisher ? " · " + publisher : "") + '</span>';
+            // 클릭 시 bookTitleInput에 제목 입력 + 검색 UI 초기화
             div.onclick = function() {
                 document.getElementById("bookTitleInput").value = title;
                 resultsDiv.style.display = "none";
@@ -178,6 +228,7 @@
         });
     }
 
+    /** /api/books 호출 후 renderBookResults로 결과 표시 */
     function fetchBooks(query) {
         fetch("/api/books?query=" + encodeURIComponent(query))
             .then(function(response) { return response.json(); })
@@ -185,22 +236,24 @@
             .catch(function() { alert("검색 중 오류가 발생했습니다."); });
     }
 
+    /** 검색 버튼 또는 Enter 시 실행: 입력값 유효성 검사 후 fetchBooks 호출 */
     function searchBook() {
         var query = document.getElementById("bookSearch").value.trim();
         if (query === "") { alert("검색어를 입력해주세요."); return; }
         fetchBooks(query);
     }
 
-    // 자격증 선택 시 교재 검색 필드 자동 입력 + 검색
+    // 자격증명 입력 시 교재 검색도 자동 실행 (디바운스 600ms: 타이핑 완료 후 검색)
     var certDebounce = null;
     certInput.addEventListener("input", function() {
         var certName = this.value.trim();
-        clearTimeout(certDebounce);
+        clearTimeout(certDebounce);  // 이전 타이머 취소 (연속 입력 시 중복 요청 방지)
         if (certName === "") return;
 
-        // 교재 검색 필드에도 자격증명 자동 입력
+        // 교재 검색 필드에도 자격증명 자동 입력 (편의성)
         document.getElementById("bookSearch").value = certName;
 
+        // 600ms 후 책 검색 실행 (타이핑이 멈추면 검색)
         certDebounce = setTimeout(function() {
             document.getElementById("bookResults").innerHTML =
                 '<div class="book-result-item" style="color:#94a3b8;">검색 중...</div>';
@@ -209,10 +262,12 @@
         }, 600);
     });
 
+    // 교재 검색 필드에서 Enter 키 입력 시 searchBook 실행 (폼 submit 방지)
     document.getElementById("bookSearch").addEventListener("keypress", function(e) {
         if (e.key === "Enter") { e.preventDefault(); searchBook(); }
     });
 
+    // 검색 결과 드롭다운 외부 클릭 시 닫기
     document.addEventListener("click", function(e) {
         var results = document.getElementById("bookResults");
         var searchInput = document.getElementById("bookSearch");

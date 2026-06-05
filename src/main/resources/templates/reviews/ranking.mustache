@@ -1,3 +1,14 @@
+{{! ========================================================
+    ranking.mustache - 자격증별 교재 랭킹 페이지
+    URL: GET /reviews/ranking
+    데이터: certRankingList (List<CertRanking>)
+      각 CertRanking: certName + books(List<BookDetail>)
+    기능:
+      1. 자격증별 교재 순위 카드 목록 (합격자 수 기준 정렬)
+      2. 자격증 검색 필터 (JS 클라이언트 처리)
+      3. AI 분석 버튼: 1위 교재 추천 이유 + 전체 리뷰 요약 (Ollama LLM)
+      4. URL 파라미터 certName 자동 필터링 (다른 페이지에서 바로가기 시)
+======================================================== }}
 {{>layouts/header}}
 
 <div class="container mt-4 pb-5" style="max-width:720px;">
@@ -7,7 +18,8 @@
         <a href="/reviews" class="btn btn-soft btn-sm" style="font-size:0.8rem;">대시보드로</a>
     </div>
 
-    <!-- 자격증 검색 필터 (루프 밖) -->
+    {{! 자격증 검색 필터 (카드가 1개 이상일 때만 JS로 display:block 전환)
+        oninput="filterCert(this.value)": 입력할 때마다 실시간 필터링 }}
     <div id="certFilterWrap" style="display:none;" class="mb-3">
         <div class="card">
             <div style="padding:0.85rem 1.25rem;">
@@ -15,18 +27,22 @@
                 <input type="text" id="certSearch" class="form-control form-control-sm"
                        placeholder="자격증 이름을 입력하세요" autocomplete="off"
                        list="certSearchList" oninput="filterCert(this.value)">
+                {{! certSearchList: JS로 각 자격증 카드의 data-cert에서 추출해 동적 생성 }}
                 <datalist id="certSearchList"></datalist>
                 <div id="certMatchCount" class="mt-1" style="font-size:0.77rem; color:#94a3b8;"></div>
             </div>
         </div>
     </div>
 
-    <!-- 자격증별 랭킹 카드 목록 -->
+    {{! 자격증별 랭킹 카드 루프
+        {{#certRankingList}}...{{/certRankingList}}: List를 순회하며 각 CertRanking 렌더링
+        data-cert: JS 필터링에서 자격증명 비교에 사용 }}
     {{#certRankingList}}
     <div class="cert-card card mb-3" data-cert="{{certName}}">
         <div class="card-header d-flex align-items-center justify-content-between">
             <span>{{certName}}</span>
             <div class="d-flex align-items-center gap-2">
+                {{! AI 분석 버튼: 클릭 시 cert-ai-panel 토글 + Ollama API 호출 }}
                 <button class="btn btn-soft btn-sm cert-ai-btn" style="font-size:0.74rem; padding:0.18rem 0.6rem; white-space:nowrap; color:#6366f1; border-color:#c7d2fe;">AI 분석</button>
                 <span class="badge badge-indigo">합격자 교재 순위</span>
             </div>
@@ -43,14 +59,23 @@
                 </tr>
             </thead>
             <tbody>
+                {{! books 배열 순회: 각 BookDetail 렌더링
+                    data-book, data-rank: JS에서 1위 교재명 추출에 사용 }}
                 {{#books}}
                 <tr data-book="{{bookTitle}}" data-rank="{{rank}}">
                     <td class="text-center fw-bold" style="color:#6366f1;">{{rank}}</td>
                     <td style="font-size:0.85rem;">
-                        {{bookTitle}} {{#top}}<span class="badge badge-indigo me-1" style="font-size:0.68rem; vertical-align:middle;">★ 추천</span>{{/top}}</td>
+                        {{bookTitle}}
+                        {{! {{#top}}...{{/top}}: rank==1 일 때만 "★ 추천" 뱃지 표시 (BookDetail.isTop()) }}
+                        {{#top}}<span class="badge badge-indigo me-1" style="font-size:0.68rem; vertical-align:middle;">★ 추천</span>{{/top}}
+                    </td>
+                    {{! num-fmt 클래스: footer.js에서 천단위 콤마 포맷 적용 }}
                     <td class="text-center"><span class="badge badge-indigo num-fmt">{{passedCount}}</span></td>
                     <td class="text-center num-fmt" style="color:#94a3b8; font-size:0.82rem;">{{totalCount}}</td>
                     <td>
+                        {{! 합격률 progress bar:
+                            data-width: footer.js의 progressbar 애니메이션이 0% → 목표값으로 채움
+                            pass-rate-label: 숫자도 동시에 0 → 목표값으로 카운팅 애니메이션 }}
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress flex-grow-1">
                                 <div class="progress-bar" data-width="{{passRateNum}}" style="background:#818cf8; width:0%; border-radius:10px;"></div>
@@ -64,7 +89,9 @@
             </tbody>
         </table>
 
-        <!-- AI 분석 패널 (자격증별) -->
+        {{! AI 분석 결과 패널 (초기 숨김, AI 버튼 클릭 시 토글)
+            cert-ai-loading: API 호출 중 스피너 표시
+            cert-ai-result: API 응답 후 HTML 결과 삽입됨 }}
         <div class="cert-ai-panel" style="display:none; border-top:1px solid #e5e7eb; padding:1rem 1.25rem 1.1rem;">
             <div class="cert-ai-loading" style="display:none; text-align:center; padding:0.8rem 0; font-size:0.84rem; color:#6366f1;">
                 <span class="spinner-border spinner-border-sm me-1" role="status"></span>AI 분석 중... (시간이 걸릴 수 있습니다)
@@ -74,6 +101,7 @@
     </div>
     {{/certRankingList}}
 
+    {{! {{^certRankingList}}: certRankingList가 비어있을 때 렌더링 (Mustache 반전 섹션) }}
     {{^certRankingList}}
     <div class="card">
         <div class="card-body text-center py-5" style="color:#94a3b8; font-size:0.85rem;">
@@ -82,7 +110,7 @@
     </div>
     {{/certRankingList}}
 
-    <!-- 검색 결과 없음 -->
+    {{! 검색어 입력 시 매칭 카드가 0개일 때 표시 }}
     <div id="noResult" style="display:none;" class="card">
         <div class="card-body text-center py-4" style="color:#94a3b8; font-size:0.85rem;">
             검색 결과가 없습니다.
@@ -92,20 +120,32 @@
 </div>
 
 <script>
+    /**
+     * XSS 방지를 위한 HTML 이스케이프 함수.
+     * AI 응답 텍스트를 innerHTML에 삽입하기 전 반드시 적용.
+     * &, <, > 를 HTML 엔티티로 변환.
+     */
     function escAi(str) {
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    // 자격증별 AI 분석 버튼
+    /**
+     * 자격증별 AI 분석 버튼 이벤트 핸들러.
+     * 버튼 클릭 시:
+     *  1. AI 패널 토글 (열기/닫기)
+     *  2. 이미 로드된 경우(dataset.loaded) 재요청 없이 바로 표시
+     *  3. 1위 교재명 추출 → 추천 이유 API + 리뷰 요약 API 병렬 호출 (Promise.all)
+     *  4. 결과 HTML 생성 후 cert-ai-result에 삽입
+     */
     document.querySelectorAll('.cert-ai-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var certCard = btn.closest('.cert-card');
-            var certName = certCard.getAttribute('data-cert');
+            var certName = certCard.getAttribute('data-cert');  // 자격증명 (data-cert 속성)
             var panel   = certCard.querySelector('.cert-ai-panel');
             var loading = certCard.querySelector('.cert-ai-loading');
             var result  = certCard.querySelector('.cert-ai-result');
 
-            // 토글
+            // 패널 토글: 열려있으면 닫기
             if (panel.style.display !== 'none') {
                 panel.style.display = 'none';
                 btn.textContent = 'AI 분석';
@@ -114,16 +154,18 @@
             panel.style.display = 'block';
             btn.textContent = '닫기';
 
-            if (result.dataset.loaded) return; // 이미 로드됨
+            if (result.dataset.loaded) return;  // 이미 로드됨: 재호출 불필요
 
-            // 1위 교재명 추출
+            // data-rank="1" 행에서 1위 교재명 추출
             var topRow = certCard.querySelector('tr[data-rank="1"]');
             var topBook = topRow ? topRow.getAttribute('data-book') : '';
 
-            loading.style.display = 'block';
+            loading.style.display = 'block';  // 로딩 스피너 표시
 
+            // AI API 병렬 호출 (Promise.all)
             var promises = [];
             if (topBook) {
+                // 1위 교재 추천 이유: GET /reviews/ai/recommend-reason
                 promises.push(
                     fetch('/reviews/ai/recommend-reason?certName=' + encodeURIComponent(certName)
                           + '&bookTitle=' + encodeURIComponent(topBook))
@@ -131,17 +173,20 @@
                         .catch(function() { return {}; })
                 );
             }
+            // 전체 리뷰 요약: GET /reviews/ai/cert-summary
             promises.push(
                 fetch('/reviews/ai/cert-summary?certName=' + encodeURIComponent(certName))
                     .then(function(r) { return r.json(); })
                     .catch(function() { return {}; })
             );
 
+            // 두 API 응답 모두 완료 후 HTML 렌더링
             Promise.all(promises).then(function(responses) {
                 loading.style.display = 'none';
                 var idx = 0;
                 var html = '';
 
+                // 1위 교재 추천 이유 섹션
                 if (topBook) {
                     var reason = responses[idx++];
                     if (reason && reason.result) {
@@ -150,35 +195,38 @@
                               + ' <span style="font-weight:400; color:#94a3b8; text-transform:none; font-size:0.75rem; letter-spacing:0;">· ' + escAi(topBook) + '</span>'
                               + '</div>'
                               + '<div style="background:#f5f3ff; border:1px solid #e0e7ff; border-radius:9px; padding:0.85rem 1rem; font-size:0.855rem; color:#374151; line-height:1.8; white-space:pre-wrap;">'
-                              + escAi(reason.result)
+                              + escAi(reason.result)  // XSS 방지 이스케이프
                               + '</div></div>';
                     }
                 }
 
+                // 전체 리뷰 요약 섹션
                 var summary = responses[idx];
                 if (summary && summary.result) {
                     html += '<div>'
                           + '<div class="section-label mb-2" style="color:#15803d;">✦ 전체 리뷰 요약</div>'
                           + '<div style="background:#f0fdf4; border:1px solid #dcfce7; border-radius:9px; padding:0.85rem 1rem; font-size:0.855rem; color:#374151; line-height:1.8; white-space:pre-wrap;">'
-                          + escAi(summary.result)
+                          + escAi(summary.result)  // XSS 방지 이스케이프
                           + '</div></div>';
                 }
 
-                result.dataset.loaded = '1';
+                result.dataset.loaded = '1';  // 재요청 방지 플래그
                 result.innerHTML = html || '<span style="color:#94a3b8; font-size:0.84rem;">분석 결과를 가져오지 못했습니다.</span>';
             });
         });
     });
 
+    // 자격증 검색 필터 초기화
     var cards = document.querySelectorAll(".cert-card");
     var filterWrap = document.getElementById("certFilterWrap");
     var matchCount = document.getElementById("certMatchCount");
     var noResult = document.getElementById("noResult");
 
     if (cards.length > 0) {
-        filterWrap.style.display = "block";
+        filterWrap.style.display = "block";  // 검색 필터 영역 표시
         matchCount.textContent = "총 " + cards.length.toLocaleString("ko-KR") + "개 자격증";
 
+        // 자격증명을 datalist에 추가 (검색 자동완성용)
         var datalist = document.getElementById("certSearchList");
         cards.forEach(function(card) {
             var option = document.createElement("option");
@@ -187,6 +235,11 @@
         });
     }
 
+    /**
+     * 자격증 이름 키워드로 카드 표시/숨김 처리.
+     * 키워드 포함 여부를 toLowerCase()로 대소문자 무관하게 비교.
+     * 매칭 결과 수를 matchCount에 표시.
+     */
     function filterCert(query) {
         var keyword = query.trim().toLowerCase();
         var visible = 0;
@@ -209,7 +262,8 @@
         }
     }
 
-    // URL 파라미터에 certName이 있으면 자동 검색
+    // URL 파라미터 certName이 있으면 페이지 로드 시 자동 필터링
+    // (show.mustache의 "교재 랭킹" 버튼 등 외부 링크에서 넘어올 때 사용)
     if (cards.length > 0) {
         var urlParams = new URLSearchParams(window.location.search);
         var initCert = urlParams.get("certName");

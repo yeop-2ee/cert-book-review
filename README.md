@@ -53,6 +53,18 @@
   └─ AI 합격 팁 생성
 ```
 
+### 레이어 구조
+
+```
+HTTP 요청
+    ↓
+Controller  (라우팅·뷰 데이터 준비)
+    ↓
+Service     (비즈니스 로직·@Transactional)
+    ↓
+Repository  (Spring Data JPA · H2 DB)
+```
+
 ---
 
 ## 기술 스택
@@ -84,9 +96,11 @@ cert-book-review/
 │   ├── client/
 │   │   └── OllamaClient.java           # Ollama REST API 클라이언트 (gemma3:4b, 타임아웃 3분)
 │   ├── controller/
-│   │   ├── ReviewController.java       # 전체 라우팅·AI 엔드포인트
+│   │   ├── ReviewController.java       # 전체 라우팅·AI 엔드포인트 (Service 계층 위임)
 │   │   ├── BookSearchController.java   # 네이버 책 검색 API 프록시
 │   │   └── CertSearchController.java   # Q-net 자격증 조회 API 프록시
+│   ├── service/
+│   │   └── ReviewService.java          # 비즈니스 로직·트랜잭션 처리 (Controller ↔ Repository 중간 계층)
 │   ├── entity/
 │   │   └── Review.java                 # 리뷰 엔티티
 │   ├── repository/

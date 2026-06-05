@@ -47,3 +47,8 @@ src/main/resources/application-local.properties
 ### DB ###
 *.db
 *.sqlite
+
+### Local study materials & docs (not for repo) ###
+080354_UP_260107/
+docs/
+*.pdf
