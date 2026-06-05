@@ -17,7 +17,6 @@ public class BookDetail {
     private String bookTitle;      // 교재 이름
     private int passedCount;       // 이 교재 사용자 중 합격자 수
     private int totalCount;        // 이 교재 전체 리뷰 수 (합격+불합격)
-    private String passRate;       // 합격률 텍스트 (예: "80%")
     private int passRateNum;       // 합격률 숫자 (progress bar의 width % 계산용)
     private String avgStudyPeriod; // 합격자들의 평균 공부 기간 텍스트 (예: "4개월")
 

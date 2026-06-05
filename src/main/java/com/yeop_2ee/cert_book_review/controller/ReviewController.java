@@ -147,8 +147,8 @@ public class ReviewController {
                 if (b.getValue() > maxCnt) { maxCnt = b.getValue(); topBook = b.getKey(); }
             }
             certSummaryList.add(new CertSummary(
-                    certName, certTotal, certPassed,
-                    certPassRateNum + "%", certPassRateNum,
+                    certName, certTotal,
+                    certPassRateNum,
                     avgDifficulty, topBook));
         }
 
@@ -158,7 +158,6 @@ public class ReviewController {
         model.addAttribute("totalFmt", String.format("%,d", total));
         model.addAttribute("certCount", uniqueCerts.size());
         model.addAttribute("certCountFmt", String.format("%,d", uniqueCerts.size()));
-        model.addAttribute("passedCount", passedCount);
         model.addAttribute("passedCountFmt", String.format("%,d", passedCount));
         model.addAttribute("passRate", passRateNum + "%");
         model.addAttribute("top5RankList", top5RankList);
@@ -167,14 +166,6 @@ public class ReviewController {
         model.addAttribute("reviewList", allReviews);  // 전체 리뷰 (JS 클라이언트 필터링용)
 
         return "reviews/index";
-    }
-
-    /**
-     * /reviews/index → /reviews 리다이렉트 (URL 별칭).
-     */
-    @GetMapping("/reviews/index")
-    public String indexAlias() {
-        return "redirect:/reviews";
     }
 
     /**
@@ -355,16 +346,6 @@ public class ReviewController {
     }
 
     /**
-     * 추천 자격증 → 랭킹 페이지 리다이렉트 (자격증 미입력 시 전체 랭킹).
-     * GET /reviews/recommend?certName=자격증명
-     */
-    @GetMapping("/reviews/recommend")
-    public String recommend(@RequestParam(defaultValue = "") String certName) {
-        if (certName.isEmpty()) return "redirect:/reviews/ranking";
-        return "redirect:/reviews/ranking?certName=" + certName;
-    }
-
-    /**
      * 공부 기간 텍스트를 개월 수(정수)로 변환하는 유틸 메서드.
      *
      * 변환 규칙:
@@ -425,14 +406,14 @@ public class ReviewController {
                 int[] s = bookEntry.getValue();
                 int rateNum = s[0] > 0 ? s[1] * 100 / s[0] : 0;  // 합격률 계산
                 String avgPeriod = s[3] > 0 ? (s[2] / s[3]) + "개월" : "-";  // 평균 공부기간
-                books.add(new BookDetail(0, bookEntry.getKey(), s[1], s[0], rateNum + "%", rateNum, avgPeriod));
+                books.add(new BookDetail(0, bookEntry.getKey(), s[1], s[0], rateNum, avgPeriod));
             }
             // 합격자 수 내림차순 정렬 후 순위 번호 부여
             books.sort((a, b) -> b.getPassedCount() - a.getPassedCount());
             for (int i = 0; i < books.size(); i++) {
                 BookDetail b = books.get(i);
                 books.set(i, new BookDetail(i + 1, b.getBookTitle(), b.getPassedCount(), b.getTotalCount(),
-                        b.getPassRate(), b.getPassRateNum(), b.getAvgStudyPeriod()));
+                        b.getPassRateNum(), b.getAvgStudyPeriod()));
             }
             certRankingList.add(new CertRanking(certEntry.getKey(), books));
         }
@@ -513,10 +494,7 @@ public class ReviewController {
                 if (certName.isEmpty() || certName.equals(r.getCertName())) filtered.add(r);
             }
             if (filtered.isEmpty()) {
-                Map<String, String> err = new HashMap<>();
-                err.put("error", "데이터가 없습니다.");
-                // 데이터 없음: 404 Not Found 응답
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.notFound().build();  // 데이터 없음: 404 Not Found
             }
             // 통계 집계
             int total = filtered.size(), passed = 0, dLow = 0, dMid = 0, dHigh = 0;

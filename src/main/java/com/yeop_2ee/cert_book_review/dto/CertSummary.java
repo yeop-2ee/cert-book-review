@@ -17,8 +17,6 @@ public class CertSummary {
 
     private String certName;      // 자격증 이름 (그룹 키)
     private int totalCount;       // 해당 자격증 전체 리뷰 수
-    private int passedCount;      // 해당 자격증 합격자 수
-    private String passRate;      // 합격률 텍스트 (예: "75%")
     private int passRateNum;      // 합격률 숫자 (progress bar width 계산용)
     private String avgDifficulty; // 평균 체감 난이도 ("하"/"중"/"상" 중 하나)
     private String topBook;       // 리뷰가 가장 많은 교재명 (가장 인기 있는 교재)

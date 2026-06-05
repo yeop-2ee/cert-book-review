@@ -103,16 +103,14 @@ public class ReviewService {
      * @Transactional: 삭제 도중 예외 발생 시 롤백 보장.
      *
      * @param id 삭제할 리뷰 ID
-     * @return 삭제 성공 true, 대상 없으면 false
      */
-    public boolean delete(Long id) {
+    public void delete(Long id) {
         Review target = reviewRepository.findById(id).orElse(null);
         if (target == null) {
             log.warn("삭제 대상 리뷰 없음 - id: {}", id);
-            return false;
+            return;
         }
         reviewRepository.delete(target);  // DB DELETE
         log.info("리뷰 삭제 완료 - id: {}", id);
-        return true;
     }
 }
