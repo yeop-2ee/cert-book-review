@@ -4,16 +4,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,6 +41,11 @@ public class CertSearchController {
     /** application.properties에서 주입되는 Q-net API 서비스 키 (공공데이터포털에서 발급) */
     @Value("${qnet.service-key}")
     private String serviceKey;
+
+    /** 캐시된 자격증 목록 (API 호출 결과를 재사용) */
+    private List<String> cachedCertList = null;
+    /** 캐시 만료 시각 (24시간마다 재조회) */
+    private Instant cacheExpiresAt = Instant.MIN;
 
     /**
      * API 연결 실패 시 사용할 기본 자격증 목록 (41개).
@@ -72,40 +77,45 @@ public class CertSearchController {
      */
     @GetMapping("/api/certs")
     public List<String> getCerts() {
+        if (cachedCertList != null && Instant.now().isBefore(cacheExpiresAt)) {
+            return cachedCertList;
+        }
+
         try {
-            // 1. 짧은 타임아웃으로 RestTemplate 생성 (페이지 렌더링 지연 최소화)
-            RestTemplate restTemplate = new RestTemplateBuilder()
-                    .connectTimeout(Duration.ofSeconds(3))  // 연결 타임아웃: 3초
-                    .readTimeout(Duration.ofSeconds(5))     // 응답 타임아웃: 5초
-                    .build();
-            // UTF-8 메시지 컨버터를 최우선 순위로 등록
-            restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
-
-            // 2. Q-net 공공API 호출 (응답을 byte[]로 받아 인코딩 직접 처리)
-            String url = "http://openapi.q-net.or.kr/api/service/rest/InquiryListNationalQualifcationSVC/getList"
+            // 1. HttpURLConnection으로 직접 연결 (RestTemplate의 컨버터/에러핸들러 우회)
+            String requestUrl = "http://openapi.q-net.or.kr/api/service/rest/InquiryListNationalQualifcationSVC/getList"
                     + "?serviceKey=" + serviceKey
-                    + "&numOfRows=500&pageNo=1";  // 한 번에 최대 500개 요청
+                    + "&numOfRows=500&pageNo=1";
 
-            ResponseEntity<byte[]> rawResponse = restTemplate.getForEntity(url, byte[].class);
-            if (rawResponse.getBody() == null) {
+            HttpURLConnection conn = (HttpURLConnection) new URL(requestUrl).openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(3000);
+            conn.setReadTimeout(5000);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+            conn.setRequestProperty("Accept", "application/json, */*");
+
+            int status = conn.getResponseCode();
+            InputStream inputStream = (status >= 200 && status < 300)
+                    ? conn.getInputStream()
+                    : conn.getErrorStream();
+
+            byte[] rawBytes = inputStream.readAllBytes();
+            conn.disconnect();
+
+            if (rawBytes == null || rawBytes.length == 0) {
                 log.warn("자격증 API 응답 바디가 비어있어 기본 목록을 사용합니다.");
                 return DEFAULT_CERT_LIST;
             }
 
-            // 3. 응답 인코딩 처리: Content-Type에서 charset 추출, 없으면 UTF-8 시도
-            Charset charset = StandardCharsets.UTF_8;
-            if (rawResponse.getHeaders().getContentType() != null
-                    && rawResponse.getHeaders().getContentType().getCharset() != null) {
-                charset = rawResponse.getHeaders().getContentType().getCharset();
-            }
-            String jsonResponse = new String(rawResponse.getBody(), charset);
+            // 2. 응답 인코딩 처리: UTF-8로 먼저 시도
+            String jsonResponse = new String(rawBytes, StandardCharsets.UTF_8);
 
             // UTF-8로 디코딩했는데 JSON 구조 기호({, [)가 없으면 EUC-KR로 재시도
             if (!jsonResponse.contains("{") && !jsonResponse.contains("[")) {
-                jsonResponse = new String(rawResponse.getBody(), Charset.forName("EUC-KR"));
+                jsonResponse = new String(rawBytes, Charset.forName("EUC-KR"));
             }
 
-            // 4. JSON 파싱: response > body > items > item[] 구조에서 자격증명 추출
+            // 3. JSON 파싱: response > body > items > item[] 구조에서 자격증명 추출
             List<String> certNames = new ArrayList<>();
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(jsonResponse);
@@ -120,10 +130,14 @@ public class CertSearchController {
             }
 
             if (certNames.isEmpty()) {
-                log.warn("자격증 API 응답이 비어있어 기본 목록을 사용합니다.");
+                String resultCode = root.path("response").path("header").path("resultCode").asText("unknown");
+                String resultMsg  = root.path("response").path("header").path("resultMsg").asText("unknown");
+                log.warn("자격증 API 응답이 비어있어 기본 목록을 사용합니다. resultCode={}, resultMsg={}", resultCode, resultMsg);
                 return DEFAULT_CERT_LIST;
             }
 
+            cachedCertList = certNames;
+            cacheExpiresAt = Instant.now().plus(Duration.ofHours(24));
             return certNames;
 
         } catch (Exception e) {
