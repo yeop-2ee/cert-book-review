@@ -34,8 +34,7 @@
         </div>
     </div>
 
-    {{! 자격증별 랭킹 카드 루프
-        {{#certRankingList}}...{{/certRankingList}}: List를 순회하며 각 CertRanking 렌더링
+    {{! 자격증별 랭킹 카드 루프: certRankingList 순회하며 각 CertRanking 렌더링
         data-cert: JS 필터링에서 자격증명 비교에 사용 }}
     {{#certRankingList}}
     <div class="cert-card card mb-3" data-cert="{{certName}}">
@@ -66,7 +65,7 @@
                     <td class="text-center fw-bold" style="color:#6366f1;">{{rank}}</td>
                     <td style="font-size:0.85rem;">
                         {{bookTitle}}
-                        {{! {{#top}}...{{/top}}: rank==1 일 때만 "★ 추천" 뱃지 표시 (BookDetail.isTop()) }}
+                        {{! rank==1 일 때만 "★ 추천" 뱃지 표시 (BookDetail.isTop()) }}
                         {{#top}}<span class="badge badge-indigo me-1" style="font-size:0.68rem; vertical-align:middle;">★ 추천</span>{{/top}}
                     </td>
                     {{! num-fmt 클래스: footer.js에서 천단위 콤마 포맷 적용 }}
@@ -101,7 +100,7 @@
     </div>
     {{/certRankingList}}
 
-    {{! {{^certRankingList}}: certRankingList가 비어있을 때 렌더링 (Mustache 반전 섹션) }}
+    {{! certRankingList가 비어있을 때 렌더링 (Mustache 반전 섹션) }}
     {{^certRankingList}}
     <div class="card">
         <div class="card-body text-center py-5" style="color:#94a3b8; font-size:0.85rem;">

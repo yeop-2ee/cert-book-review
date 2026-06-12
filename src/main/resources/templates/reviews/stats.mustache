@@ -38,7 +38,7 @@
                            placeholder="자격증을 선택하거나 직접 입력 (미선택 시 전체)"
                            autocomplete="off">
                     {{! certNames 리스트를 datalist option으로 렌더링
-                        {{.}}: 현재 반복 중인 항목 자체 (String 리스트이므로 .으로 값 참조) }}
+                        : 현재 반복 중인 항목 자체 (String 리스트이므로 .으로 값 참조) }}
                     <datalist id="certDatalist">
                         {{#certNames}}
                         <option value="{{.}}">
