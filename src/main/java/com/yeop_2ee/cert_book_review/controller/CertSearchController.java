@@ -77,6 +77,7 @@ public class CertSearchController {
      */
     @GetMapping("/api/certs")
     public List<String> getCerts() {
+        // 캐시 유효 시 즉시 반환 (Q-net API 재호출 없음)
         if (cachedCertList != null && Instant.now().isBefore(cacheExpiresAt)) {
             return cachedCertList;
         }
